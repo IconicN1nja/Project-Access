@@ -162,3 +162,38 @@ body {
     transform: translateY(0);
   }
 }
+
+/* Markdown styling overrides inside chat bubbles */
+.font-chat-bubble p {
+  margin-bottom: 0.5rem;
+}
+.font-chat-bubble p:last-child {
+  margin-bottom: 0;
+}
+.font-chat-bubble strong {
+  font-weight: 700;
+}
+.font-chat-bubble ul {
+  list-style-type: disc;
+  padding-left: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+.font-chat-bubble ol {
+  list-style-type: decimal;
+  padding-left: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+.font-chat-bubble li {
+  margin-bottom: 0.25rem;
+}
+.font-chat-bubble h1,
+.font-chat-bubble h2,
+.font-chat-bubble h3 {
+  font-weight: 600;
+  margin-top: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+.font-chat-bubble h1 { font-size: 1.2rem; }
+.font-chat-bubble h2 { font-size: 1.1rem; }
+.font-chat-bubble h3 { font-size: 1.0rem; }
+

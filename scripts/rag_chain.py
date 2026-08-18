@@ -291,21 +291,21 @@ def run_query(rag: CriminalLawRAG, query: str):
 
 def main():
     """CLI runner for RAG queries."""
-    rag = CriminalLawRAG()
-
-    if len(sys.argv) > 1:
-        if sys.argv[1] == "--json":
-            query = " ".join(sys.argv[2:])
-            original_stdout = sys.stdout
-            sys.stdout = sys.stderr
-            res = rag.answer_question(question=query)
-            sys.stdout = original_stdout
-            import json
-            print(json.dumps(res, ensure_ascii=False))
-        else:
-            query = " ".join(sys.argv[1:])
-            run_query(rag, query)
+    if len(sys.argv) > 1 and sys.argv[1] == "--json":
+        original_stdout = sys.stdout
+        sys.stdout = sys.stderr
+        rag = CriminalLawRAG()
+        query = " ".join(sys.argv[2:])
+        res = rag.answer_question(question=query)
+        sys.stdout = original_stdout
+        import json
+        print(json.dumps(res, ensure_ascii=False))
+    elif len(sys.argv) > 1:
+        rag = CriminalLawRAG()
+        query = " ".join(sys.argv[1:])
+        run_query(rag, query)
     else:
+        rag = CriminalLawRAG()
         print("\n========================================================")
         print("  Project Access - Legal RAG AI Assistant (Qdrant + Groq)")
         print("========================================================")

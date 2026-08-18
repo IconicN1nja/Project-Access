@@ -2,6 +2,8 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 // Interfaces
 interface SourceDoc {
@@ -418,9 +420,11 @@ export default function Home() {
                       : "bg-surface-container-low text-on-surface rounded-2xl rounded-tl-sm border border-outline-variant/20"
                       } px-c-md py-c-sm`}
                   >
-                    <p className="font-chat-bubble text-chat-bubble whitespace-pre-line leading-relaxed">
-                      {msg.text}
-                    </p>
+                    <div className="font-chat-bubble text-chat-bubble leading-relaxed">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {msg.text}
+                      </ReactMarkdown>
+                    </div>
                   </div>
 
                   {/* Simulated template card in initial system message */}
