@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+    <title>Welcome - Counselor AI</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary": "#ffffff",
+                        "surface-container": "#e7eeff",
+                        "secondary-fixed": "#d3e4fe",
+                        "surface-variant": "#d8e3fb",
+                        "on-error-container": "#93000a",
+                        "secondary-container": "#d0e1fb",
+                        "on-tertiary-fixed-variant": "#444749",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "outline": "#76777d",
+                        "surface-dim": "#cfdaf2",
+                        "secondary": "#505f76",
+                        "on-secondary-container": "#54647a",
+                        "tertiary-container": "#191c1e",
+                        "primary-fixed-dim": "#bec6e0",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-container": "#7c839b",
+                        "on-tertiary-container": "#818486",
+                        "inverse-surface": "#263143",
+                        "surface-tint": "#565e74",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "error-container": "#ffdad6",
+                        "inverse-primary": "#bec6e0",
+                        "background": "#f9f9ff",
+                        "tertiary": "#000000",
+                        "surface-bright": "#f9f9ff",
+                        "on-secondary": "#ffffff",
+                        "outline-variant": "#c6c6cd",
+                        "error": "#ba1a1a",
+                        "on-surface-variant": "#45464d",
+                        "surface": "#f9f9ff",
+                        "on-error": "#ffffff",
+                        "inverse-on-surface": "#ecf1ff",
+                        "on-secondary-fixed": "#0b1c30",
+                        "primary": "#000000",
+                        "primary-fixed": "#dae2fd",
+                        "on-background": "#111c2d",
+                        "primary-container": "#131b2e",
+                        "surface-container-highest": "#d8e3fb",
+                        "surface-container-high": "#dee8ff",
+                        "on-surface": "#111c2d",
+                        "on-primary-fixed": "#131b2e",
+                        "surface-container-low": "#f0f3ff",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "tertiary-fixed": "#e0e3e5",
+                        "on-tertiary-fixed": "#191c1e",
+                        "tertiary-fixed-dim": "#c4c7c9"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "8px",
+                        "lg": "24px",
+                        "base": "4px",
+                        "container-margin": "20px",
+                        "chat-gutter": "12px",
+                        "md": "16px",
+                        "sm": "12px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "chat-bubble": ["Inter"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "label-caps": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", { "lineHeight": "26px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "500" }],
+                        "chat-bubble": ["15px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-md": ["14px", { "lineHeight": "22px", "fontWeight": "400" }],
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .delay-100 {
+            animation-delay: 100ms;
+        }
+
+        .delay-200 {
+            animation-delay: 200ms;
+        }
+
+        .delay-300 {
+            animation-delay: 300ms;
+        }
+
+        .delay-400 {
+            animation-delay: 400ms;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background text-on-background font-body-lg text-body-lg antialiased selection:bg-secondary-fixed selection:text-on-secondary-fixed">
+    <!-- 
+        Navigation Shell Logic: 
+        As a welcome/onboarding screen, this is a linear, transactional entry point. 
+        TopAppBar and BottomNavBar are deliberately suppressed to maintain focus on the value proposition and primary CTA.
+    -->
+    <main class="flex flex-col min-h-[100svh] px-container-margin py-xl relative overflow-hidden">
+        <!-- Subtle background texture/gradient -->
+        <div
+            class="absolute inset-0 bg-gradient-to-br from-surface-container-low to-surface opacity-50 -z-10 pointer-events-none">
+        </div>
+        <!-- Header / Logo -->
+        <header class="flex items-center justify-center w-full pt-4 fade-in-up">
+            <span class="material-symbols-outlined mr-2 text-[28px] text-primary"
+                style="font-variation-settings: 'FILL' 1;">gavel</span>
+            <h1 class="font-headline-md text-headline-md text-primary tracking-tight">Counselor AI</h1>
+        </header>
+        <!-- Main Content Area -->
+        <div class="flex-grow flex flex-col justify-center items-center w-full max-w-md mx-auto mt-8 mb-12">
+            <!-- Hero Image -->
+            <div
+                class="w-full aspect-[4/3] mb-xl rounded-xl overflow-hidden shadow-sm border border-outline-variant/20 fade-in-up delay-100 bg-surface-container relative">
+                <img class="w-full h-full object-cover"
+                    data-alt="A highly refined, abstract 3D rendering representing balanced architectural pillars or scales of justice. The composition is sleek, minimalist, and modern. It uses soft, diffused studio lighting against a pristine light off-white background. Materials appear as matte ceramic and lightly frosted glass in subtle tones of muted slate, crisp white, and deep navy accents. The aesthetic is extremely clean, sophisticated, and conveys trust, authority, and calm professional legal counsel. No text."
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzfZLbuakQyQBLC3nQ5wP1Rur1BSzOKTtJS4IqeditOUQdkY4tPuPYbtyBmm6HBit49QqN2If1P4cRD9EoQ-hw1QJiZQFoN8yUDERTU-DbWMOFuz7asSs1U-NV7aaBgeXM2Mr5DB49pDCJKvOOpUG59cHynrFyNakywGIOqdSxTGcbq11ocXh48GlYSjnwelgb7eAJ-5NCiLUEgNASlyxbbsZMOC6ccqlNXswl1Arb-UJKzyrPR1I" />
+            </div>
+            <!-- Typography & Value Prop -->
+            <div class="text-center w-full px-4">
+                <h2 class="font-display-lg text-display-lg text-on-surface mb-sm fade-in-up delay-200 text-balance">
+                    Clarity in complexity.
+                </h2>
+                <p
+                    class="font-body-lg text-body-lg text-on-surface-variant fade-in-up delay-300 text-balance mx-auto max-w-[280px]">
+                    Sophisticated, accessible legal guidance tailored to your specific situation. Begin a secure
+                    consultation to explore your options.
+                </p>
+            </div>
+        </div>
+        <!-- Action Area -->
+        <div class="w-full max-w-md mx-auto mt-auto pb-lg fade-in-up delay-400">
+            <div class="flex items-center justify-center mb-md space-x-2 text-on-surface-variant/80">
+                <span class="material-symbols-outlined text-[16px]">lock</span>
+                <span class="font-label-caps text-label-caps">Secure &amp; Confidential</span>
+            </div>
+            <button
+                class="w-full h-14 bg-primary text-on-primary rounded-full flex justify-center items-center font-headline-sm text-headline-sm transition-transform duration-300 ease-out active:scale-[0.98] hover:bg-on-background shadow-sm group">
+                Start Consultation
+                <span
+                    class="material-symbols-outlined ml-2 transition-transform duration-300 group-hover:translate-x-1">arrow_forward</span>
+            </button>
+        </div>
+    </main>
+</body>
+
+</html>

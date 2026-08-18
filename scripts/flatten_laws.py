@@ -102,8 +102,8 @@ flatten_legal_json(
 
 # 3. Domestic Violence Act
 flatten_legal_json(
-    input_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/domestic_voilence/domestic_violence_sections.json",
-    output_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/domestic_voilence/domestic_violence_flattened.json",
+    input_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/domestic_violence/domestic_violence_sections.json",
+    output_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/domestic_violence/domestic_violence_flattened.json",
     act_id="DV_2005",
     act_title="The Protection of Women from Domestic Violence Act, 2005",
 )
