@@ -13,7 +13,7 @@ from typing import Dict, List, Any
 
 from dotenv import load_dotenv
 from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, VectorParams, PointStruct
+from qdrant_client.models import Distance, VectorParams, PointStruct, TextIndexParams, TokenizerType
 from fastembed import TextEmbedding
 
 # Load environment variables
@@ -148,6 +148,18 @@ def index_criminal_data():
         client.create_collection(
             collection_name=collection_name,
             vectors_config=VectorParams(size=vector_dim, distance=Distance.COSINE),
+        )
+
+        print(f"Creating text payload index on 'text' field for '{collection_name}'...")
+        client.create_payload_index(
+            collection_name=collection_name,
+            field_name="text",
+            field_schema=TextIndexParams(
+                type="text",
+                tokenizer=TokenizerType.WORD,
+                lowercase=True,
+                min_token_len=2,
+            ),
         )
 
         # Batch upsert points
