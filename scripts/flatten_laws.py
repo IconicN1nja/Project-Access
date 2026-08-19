@@ -8,64 +8,70 @@ def flatten_legal_json(input_filepath, output_filepath, act_id, act_title):
 
     flat_sections = []
     chapters = data.get("Chapters", {})
+    top_level_sections = data.get("Sections", {})
 
-    # Iterate through the chapters
-    for chap_idx, chapter_data in chapters.items():
-        chapter_id = chapter_data.get("ID", "")
-        chapter_name = chapter_data.get("Name", "")
-        chapter_label = f"{chapter_id} {chapter_name}".strip()
+    # Recursive function to extract text from nested paragraphs
+    def extract_text(p_data):
+        text_parts = []
+        if isinstance(p_data, str):
+            text_parts.append(p_data)
+        elif isinstance(p_data, dict):
+            if "text" in p_data:
+                text_parts.append(p_data["text"])
+            if "contains" in p_data:
+                for k, v in p_data["contains"].items():
+                    text_parts.append(extract_text(v))
+        return " ".join(text_parts)
 
-        sections = chapter_data.get("Sections", {})
-        subheadings = chapter_data.get("Subheadings", [])
+    # Helper to process and format section dictionaries
+    def process_sections(section_dict, chapter_label=""):
+        for sec_key, sec_val in section_dict.items():
+            sec_heading = sec_val.get("heading", "")
+            paragraphs = sec_val.get("paragraphs", {})
 
-        # Recursive function to extract text from nested paragraphs
-        def extract_text(p_data):
-            text_parts = []
-            if isinstance(p_data, str):
-                text_parts.append(p_data)
-            elif isinstance(p_data, dict):
-                if "text" in p_data:
-                    text_parts.append(p_data["text"])
-                if "contains" in p_data:
-                    for k, v in p_data["contains"].items():
-                        text_parts.append(extract_text(v))
-            return " ".join(text_parts)
+            full_text = []
+            for p_idx, p_data in paragraphs.items():
+                full_text.append(extract_text(p_data))
 
-        # Helper to process and format section dictionaries
-        def process_sections(section_dict):
-            for sec_key, sec_val in section_dict.items():
-                sec_heading = sec_val.get("heading", "")
-                paragraphs = sec_val.get("paragraphs", {})
+            combined_text = "\n".join(full_text)
 
-                full_text = []
-                for p_idx, p_data in paragraphs.items():
-                    full_text.append(extract_text(p_data))
+            # Clean up the section number string
+            sec_num = sec_key.replace("Section", "").replace(".", "").strip()
 
-                combined_text = "\n".join(full_text)
+            flat_sections.append(
+                {
+                    "section_number": sec_num,
+                    "section_title": sec_heading,
+                    "chapter": chapter_label,
+                    "text": f"{sec_key} {sec_heading}\n{combined_text}",
+                    "source_label": f"Section {sec_num}, {act_title}",
+                    "chunk_id": f"{act_id}_{sec_num}",
+                }
+            )
 
-                # Clean up the section number string
-                sec_num = sec_key.replace("Section", "").replace(".", "").strip()
+    # 1. Iterate through the chapters if present
+    if chapters:
+        for chap_idx, chapter_data in chapters.items():
+            chapter_id = chapter_data.get("ID", "")
+            chapter_name = chapter_data.get("Name", "")
+            chapter_label = f"{chapter_id} {chapter_name}".strip()
 
-                flat_sections.append(
-                    {
-                        "section_number": sec_num,
-                        "section_title": sec_heading,
-                        "chapter": chapter_label,
-                        "text": f"{sec_key} {sec_heading}\n{combined_text}",
-                        "source_label": f"Section {sec_num}, {act_title}",
-                        "chunk_id": f"{act_id}_{sec_num}",
-                    }
-                )
+            sections = chapter_data.get("Sections", {})
+            subheadings = chapter_data.get("Subheadings", [])
 
-        # Extract sections directly under the chapter
-        if sections:
-            process_sections(sections)
+            # Extract sections directly under the chapter
+            if sections:
+                process_sections(sections, chapter_label)
 
-        # Extract sections nested under subheadings (e.g., in POCSO)
-        for sub in subheadings:
-            sub_sections = sub.get("Sections", {})
-            if sub_sections:
-                process_sections(sub_sections)
+            # Extract sections nested under subheadings (e.g., in POCSO)
+            for sub in subheadings:
+                sub_sections = sub.get("Sections", {})
+                if sub_sections:
+                    process_sections(sub_sections, chapter_label)
+
+    # 2. Extract top-level sections for acts without chapters (e.g., IRWA, DPA)
+    elif top_level_sections:
+        process_sections(top_level_sections, "")
 
     # Create the final flat structure
     output_data = {"act_id": act_id, "act_title": act_title, "sections": flat_sections}
@@ -76,44 +82,90 @@ def flatten_legal_json(input_filepath, output_filepath, act_id, act_title):
     print(f"Flattened {len(flat_sections)} sections and saved to {output_filepath}")
 
 
-# Execute the function for POCSO
-flatten_legal_json(
-    input_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/pocso/pocso_sections.json",
-    output_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/pocso/pocso_flattened.json",
-    act_id="POCSO_2012",
-    act_title="The Protection of Children from Sexual Offences Act, 2012",
-)
+# # 1. Arms Act
+# flatten_legal_json(
+#     input_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/arms/arms_sections.json",
+#     output_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/arms/arms_flattened.json",
+#     act_id="ARMS_1959",
+#     act_title="The Arms Act, 1959",
+# )
 
-# 1. Arms Act
-flatten_legal_json(
-    input_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/arms/arms_sections.json",
-    output_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/arms/arms_flattened.json",
-    act_id="ARMS_1959",
-    act_title="The Arms Act, 1959",
-)
+# # 2. UAPA
+# flatten_legal_json(
+#     input_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/uapa/uapa_sections.json",
+#     output_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/uapa/uapa_flattened.json",
+#     act_id="UAPA_1967",
+#     act_title="The Unlawful Activities (Prevention) Act, 1967",
+# )
 
-# 2. UAPA
-flatten_legal_json(
-    input_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/uapa/uapa_sections.json",
-    output_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/uapa/uapa_flattened.json",
-    act_id="UAPA_1967",
-    act_title="The Unlawful Activities (Prevention) Act, 1967",
-)
+# # 3. Domestic Violence Act
+# flatten_legal_json(
+#     input_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/domestic_violence/domestic_violence_sections.json",
+#     output_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/domestic_violence/domestic_violence_flattened.json",
+#     act_id="DV_2005",
+#     act_title="The Protection of Women from Domestic Violence Act, 2005",
+# )
 
-# 3. Domestic Violence Act
-flatten_legal_json(
-    input_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/domestic_violence/domestic_violence_sections.json",
-    output_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/domestic_violence/domestic_violence_flattened.json",
-    act_id="DV_2005",
-    act_title="The Protection of Women from Domestic Violence Act, 2005",
-)
+# # 4. NDPS Act
+# flatten_legal_json(
+#     input_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/ndps/ndps_sections.json",
+#     output_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/ndps/ndps_flattened.json",
+#     act_id="NDPS_1985",
+#     act_title="The Narcotic Drugs and Psychotropic Substances Act, 1985",
+# )
 
-# 4. NDPS Act
-flatten_legal_json(
-    input_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/ndps/ndps_sections.json",
-    output_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/ndps/ndps_flattened.json",
-    act_id="NDPS_1985",
-    act_title="The Narcotic Drugs and Psychotropic Substances Act, 1985",
-)
+# # 5. POCSO Act
+# flatten_legal_json(
+#     input_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/pocso/pocso_sections.json",
+#     output_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/pocso/pocso_flattened.json",
+#     act_id="POCSO_2012",
+#     act_title="The Protection of Children from Sexual Offences Act, 2012",
+# )
 
-# You can add similar function calls for Arms Act, UAPA, DV Act, and NDPS here
+# # 7. PMLA
+# flatten_legal_json(
+#     input_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/pmla/pmla_sections.json",
+#     output_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/pmla/pmla_flattened.json",
+#     act_id="PMLA_2002",
+#     act_title="The Prevention of Money-Laundering Act, 2002",
+# )
+
+# # 8. PCA
+# flatten_legal_json(
+#     input_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/pca/pca_sections.json",
+#     output_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/pca/pca_flattened.json",
+#     act_id="PCA_1988",
+#     act_title="The Prevention of Corruption Act, 1988",
+# )
+
+# # 9. DCA
+# flatten_legal_json(
+#     input_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/dca/dca_sections.json",
+#     output_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/dca/dca_flattened.json",
+#     act_id="DCA_1940",
+#     act_title="The Drugs and Cosmetics Act, 1940",
+# )
+
+# # 10. IRWA
+# flatten_legal_json(
+#     input_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/irwa/irwa_sections.json",
+#     output_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/irwa/irwa_flattened.json",
+#     act_id="IRWA_1986",
+#     act_title="The Indecent Representation of Women (Prohibition) Act, 1986",
+# )
+
+# # 11. DPA
+# flatten_legal_json(
+#     input_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/dpa/dpa_sections.json",
+#     output_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/dpa/dpa_flattened.json",
+#     act_id="DPA_1961",
+#     act_title="The Dowry Prohibition Act, 1961",
+# )
+
+# # 12. SC/ST Act
+# flatten_legal_json(
+#     input_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/sc_st/sc_st_sections.json",
+#     output_filepath="/home/adarsh/Code/Projects/Project-Access/data/criminal/sc_st/sc_st_flattened.json",
+#     act_id="SC_ST_1989",
+#     act_title="The Scheduled Castes and the Scheduled Tribes (Prevention of Atrocities) Act, 1989",
+# )
