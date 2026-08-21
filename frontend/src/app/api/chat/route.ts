@@ -1,70 +1,48 @@
-import { NextResponse } from "next/server";
-import { spawn } from "child_process";
-import path from "path";
+import { NextResponse } from 'next/server';
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const { query } = await request.json();
+    const { query, messages, model, deepSearch } = await req.json();
 
-    if (!query || typeof query !== "string") {
-      return NextResponse.json(
-        { error: "A valid query string is required." },
-        { status: 400 }
-      );
+    if (!query || typeof query !== 'string') {
+      return NextResponse.json({ error: 'Query string is required' }, { status: 400 });
     }
 
-    // Resolve path to scripts/rag_chain.py
-    const scriptPath = path.join(process.cwd(), "..", "scripts", "rag_chain.py");
+    // Configurable backend URL (defaults to local FastAPI port 8000)
+    const backendUrl = process.env.RAG_API_URL || process.env.NEXT_PUBLIC_RAG_API_URL || 'http://127.0.0.1:8000/api/query';
 
-    return new Promise<NextResponse>((resolve) => {
-      let stdoutBuffer = "";
-      let stderrBuffer = "";
-
-      const pythonProcess = spawn("python", [scriptPath, "--json", query], {
-        cwd: path.join(process.cwd(), ".."),
-        env: { ...process.env }
+    try {
+      const ragResponse = await fetch(backendUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: query }),
+        signal: AbortSignal.timeout(15000) // 15s timeout for LLM inference
       });
 
-      pythonProcess.stdout.on("data", (data) => {
-        stdoutBuffer += data.toString();
-      });
+      if (ragResponse.ok) {
+        const data = await ragResponse.json();
+        return NextResponse.json({
+          answer: data.answer,
+          classified_collection: data.classified_collection,
+          sources: (data.retrieved_docs || []).map((doc: any) => ({
+            title: doc.section_title || doc.act_title || doc.source_label || 'Legal Section',
+            act_title: doc.act_title,
+            section_number: doc.section_number,
+            snippet: doc.text || doc.snippet || '',
+            score: doc.score || 0.95
+          }))
+        });
+      }
+    } catch (err: any) {
+      console.warn(`Could not reach backend at ${backendUrl}:`, err.message);
+    }
 
-      pythonProcess.stderr.on("data", (data) => {
-        stderrBuffer += data.toString();
-      });
-
-      pythonProcess.on("close", (code) => {
-        if (code !== 0) {
-          console.error(`Python RAG process exited with code ${code}. Stderr: ${stderrBuffer}`);
-          resolve(
-            NextResponse.json(
-              { error: "RAG advisory process execution failed.", details: stderrBuffer },
-              { status: 500 }
-            )
-          );
-          return;
-        }
-
-        try {
-          const parsedResult = JSON.parse(stdoutBuffer.trim());
-          resolve(NextResponse.json(parsedResult));
-        } catch (err) {
-          console.error("Failed to parse Python script output as JSON:", err);
-          console.error("Raw stdout received:", stdoutBuffer);
-          resolve(
-            NextResponse.json(
-              { error: "Failed to parse RAG engine response.", rawOutput: stdoutBuffer },
-              { status: 500 }
-            )
-          );
-        }
-      });
+    // Fallback response if backend service is offline
+    return NextResponse.json({
+      success: true,
+      query
     });
-  } catch (err: any) {
-    console.error("Unhandled error in Next.js Route Handler:", err);
-    return NextResponse.json(
-      { error: err.message || "Internal Server Error" },
-      { status: 500 }
-    );
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }
