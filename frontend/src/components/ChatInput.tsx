@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { useRef, useEffect } from 'react';
-import { ArrowUp, Square } from 'lucide-react';
+import React, { useRef, useEffect } from "react";
+import { ArrowUp, Square } from "lucide-react";
 
 interface ChatInputProps {
   input: string;
@@ -16,19 +16,19 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   setInput,
   onSend,
   isGenerating,
-  onStop
+  onStop,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 180)}px`;
     }
   }, [input]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (isGenerating) {
         onStop();
@@ -57,15 +57,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           <button
             onClick={isGenerating ? onStop : onSend}
             disabled={!isGenerating && !input.trim()}
-            title={isGenerating ? 'Stop generation' : 'Send (Enter)'}
-            className={`p-2 rounded-lg transition-colors flex items-center justify-center flex-shrink-0 ${
+            title={isGenerating ? "Stop generation" : "Send (Enter)"}
+            className={`p-2 rounded-lg transition-colors flex items-center justify-center shrink-0 ${
               isGenerating
-                ? 'bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-900'
+                ? "bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-900"
                 : input.trim()
-                ? 'bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 cursor-pointer'
-                : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed'
-            }`}
-          >
+                  ? "bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 cursor-pointer"
+                  : "bg-zinc-200 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed"
+            }`}>
             {isGenerating ? (
               <Square className="w-3.5 h-3.5 fill-current" />
             ) : (
@@ -75,7 +74,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         </div>
 
         <p className="text-center text-[11px] text-zinc-400 dark:text-zinc-500 mt-2">
-          Project Access provides statutory information. Always consult a legal professional for case filings.
+          Project Access provides statutory information. Always consult a legal
+          professional for case filings.
         </p>
       </div>
     </div>
