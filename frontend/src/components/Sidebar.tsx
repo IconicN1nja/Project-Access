@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Chat } from '@/types';
+import React, { useState } from "react";
+import { Chat } from "@/types";
 import {
   Plus,
   Search,
@@ -11,8 +11,8 @@ import {
   Trash2,
   Sun,
   Moon,
-  PanelLeftClose
-} from 'lucide-react';
+  PanelLeftClose,
+} from "lucide-react";
 
 interface SidebarProps {
   chats: Chat[];
@@ -39,27 +39,38 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onRenameChat,
   onDeleteChat,
   theme,
-  onToggleTheme
+  onToggleTheme,
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredChats = chats.filter(c => {
+  const filteredChats = chats.filter((c) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
-    return c.title.toLowerCase().includes(q) || c.messages.some(m => m.content.toLowerCase().includes(q));
+    return (
+      c.title.toLowerCase().includes(q) ||
+      c.messages.some((m) => m.content.toLowerCase().includes(q))
+    );
   });
 
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const today = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+  ).getTime();
   const yesterday = today - 86400000;
   const pastWeek = today - 86400000 * 7;
 
   const groups = {
-    pinned: filteredChats.filter(c => c.pinned),
-    today: filteredChats.filter(c => !c.pinned && c.updatedAt >= today),
-    yesterday: filteredChats.filter(c => !c.pinned && c.updatedAt >= yesterday && c.updatedAt < today),
-    pastWeek: filteredChats.filter(c => !c.pinned && c.updatedAt >= pastWeek && c.updatedAt < yesterday),
-    older: filteredChats.filter(c => !c.pinned && c.updatedAt < pastWeek)
+    pinned: filteredChats.filter((c) => c.pinned),
+    today: filteredChats.filter((c) => !c.pinned && c.updatedAt >= today),
+    yesterday: filteredChats.filter(
+      (c) => !c.pinned && c.updatedAt >= yesterday && c.updatedAt < today,
+    ),
+    pastWeek: filteredChats.filter(
+      (c) => !c.pinned && c.updatedAt >= pastWeek && c.updatedAt < yesterday,
+    ),
+    older: filteredChats.filter((c) => !c.pinned && c.updatedAt < pastWeek),
   };
 
   const renderGroup = (title: string, items: Chat[]) => {
@@ -70,7 +81,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {title}
         </div>
         <div className="space-y-0.5">
-          {items.map(chat => {
+          {items.map((chat) => {
             const isActive = chat.id === activeChatId;
             return (
               <div
@@ -78,35 +89,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 onClick={() => onSelectChat(chat.id)}
                 className={`group relative flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs cursor-pointer transition-colors ${
                   isActive
-                    ? 'bg-zinc-200/80 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-zinc-200'
-                }`}
-              >
+                    ? "bg-zinc-200/80 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium"
+                    : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-zinc-200"
+                }`}>
                 <div className="flex items-center gap-2 min-w-0 flex-1 pr-1">
-                  <MessageSquare className="w-3.5 h-3.5 flex-shrink-0 opacity-60" />
-                  <span className="truncate">{chat.title || 'New chat'}</span>
+                  <MessageSquare className="w-3.5 h-3.5 shrink-0 opacity-60" />
+                  <span className="truncate">{chat.title || "New chat"}</span>
                 </div>
 
                 <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     title="Pin"
                     onClick={(e) => onPinChat(chat.id, e)}
-                    className="p-0.5 rounded text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
-                  >
-                    <Pin className={`w-3 h-3 ${chat.pinned ? 'fill-current' : ''}`} />
+                    className="p-0.5 rounded text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200">
+                    <Pin
+                      className={`w-3 h-3 ${chat.pinned ? "fill-current" : ""}`}
+                    />
                   </button>
                   <button
                     title="Rename"
                     onClick={(e) => onRenameChat(chat.id, e)}
-                    className="p-0.5 rounded text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
-                  >
+                    className="p-0.5 rounded text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200">
                     <Edit2 className="w-3 h-3" />
                   </button>
                   <button
                     title="Delete"
                     onClick={(e) => onDeleteChat(chat.id, e)}
-                    className="p-0.5 rounded text-zinc-400 hover:text-red-500"
-                  >
+                    className="p-0.5 rounded text-zinc-400 hover:text-red-500">
                     <Trash2 className="w-3 h-3" />
                   </button>
                 </div>
@@ -132,13 +141,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <aside
         className={`fixed lg:static inset-y-0 left-0 z-50 bg-zinc-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex flex-col justify-between transition-all duration-200 ease-in-out ${
           isOpen
-            ? 'w-56 sm:w-60 translate-x-0 opacity-100'
-            : 'w-0 -translate-x-full lg:w-0 lg:translate-x-0 opacity-0 pointer-events-none border-none'
-        }`}
-      >
+            ? "w-56 sm:w-60 translate-x-0 opacity-100"
+            : "w-0 -translate-x-full lg:w-0 lg:translate-x-0 opacity-0 pointer-events-none border-none"
+        }`}>
         <div className="w-56 sm:w-60 overflow-hidden flex flex-col flex-1">
           {/* Header */}
-          <div className="h-14 px-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between flex-shrink-0">
+          <div className="h-14 px-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2.5">
               <img
                 src="/icon.jpeg"
@@ -153,18 +161,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               onClick={onToggle}
               title="Collapse sidebar"
-              className="p-1 rounded-md text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200/60 dark:hover:bg-zinc-800 transition-colors"
-            >
+              className="p-1 rounded-md text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200/60 dark:hover:bg-zinc-800 transition-colors">
               <PanelLeftClose className="w-4 h-4" />
             </button>
           </div>
 
           {/* New Chat & Search */}
-          <div className="p-3 space-y-2 flex-shrink-0">
+          <div className="p-3 space-y-2 shrink-0">
             <button
               onClick={onNewChat}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700/60 text-zinc-900 dark:text-zinc-100 font-medium text-xs shadow-sm transition-colors"
-            >
+              className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700/60 text-zinc-900 dark:text-zinc-100 font-medium text-xs shadow-sm transition-colors">
               <div className="flex items-center gap-2">
                 <Plus className="w-3.5 h-3.5" />
                 <span>New chat</span>
@@ -192,24 +198,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
             ) : (
               <>
-                {renderGroup('Pinned', groups.pinned)}
-                {renderGroup('Today', groups.today)}
-                {renderGroup('Yesterday', groups.yesterday)}
-                {renderGroup('Previous 7 Days', groups.pastWeek)}
-                {renderGroup('Older', groups.older)}
+                {renderGroup("Pinned", groups.pinned)}
+                {renderGroup("Today", groups.today)}
+                {renderGroup("Yesterday", groups.yesterday)}
+                {renderGroup("Previous 7 Days", groups.pastWeek)}
+                {renderGroup("Older", groups.older)}
               </>
             )}
           </div>
 
           {/* Minimal Footer with Dark/Light mode switch */}
-          <div className="p-3 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between flex-shrink-0">
-            <span className="text-[11px] text-zinc-500 font-medium">Project Access AI</span>
+          <div className="p-3 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
+            <span className="text-[11px] text-zinc-500 font-medium">
+              Project Access AI
+            </span>
             <button
               onClick={onToggleTheme}
-              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-              className="p-1.5 rounded-md text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-200/60 dark:hover:bg-zinc-800 transition-colors flex items-center gap-1 text-xs"
-            >
-              {theme === 'dark' ? (
+              title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+              className="p-1.5 rounded-md text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-200/60 dark:hover:bg-zinc-800 transition-colors flex items-center gap-1 text-xs">
+              {theme === "dark" ? (
                 <>
                   <Sun className="w-3.5 h-3.5 text-amber-400" />
                   <span className="text-[11px] text-zinc-400">Light</span>
