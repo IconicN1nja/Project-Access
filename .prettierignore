@@ -1,0 +1,12 @@
+node_modules
+.next
+dist
+build
+.venv
+venv
+env
+ENV
+qdrant_storage
+package-lock.json
+.git
+.vscode
