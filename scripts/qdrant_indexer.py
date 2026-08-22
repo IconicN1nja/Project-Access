@@ -32,8 +32,8 @@ def get_qdrant_client(storage_path: str = DEFAULT_STORAGE_PATH) -> QdrantClient:
     api_key = os.getenv("QDRANT_API_KEY")
 
     if qdrant_url:
-        print(f"Connecting to Qdrant Cloud server at: {qdrant_url}")
-        return QdrantClient(url=qdrant_url, api_key=api_key)
+        print(f"Connecting to Qdrant Cloud server at: {qdrant_url} with timeout=300")
+        return QdrantClient(url=qdrant_url, api_key=api_key, timeout=300)
     else:
         print(f"Using local Qdrant storage at: {storage_path}")
         os.makedirs(storage_path, exist_ok=True)
@@ -163,7 +163,7 @@ def index_criminal_data():
         )
 
         # Batch upsert points
-        batch_size = 64
+        batch_size = 16
         point_id = 1
         print(f"Generating embeddings and upserting points in batches of {batch_size}...")
 

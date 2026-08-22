@@ -10,7 +10,7 @@ from typing import Dict, List, Any, Optional
 
 from dotenv import load_dotenv
 from qdrant_client import QdrantClient
-from qdrant_client.models import Filter, FieldCondition, MatchValue
+from qdrant_client.models import Filter, FieldCondition, MatchValue, MatchText
 from fastembed import TextEmbedding
 
 # Load environment variables
@@ -29,8 +29,8 @@ class CriminalLawRetriever:
         api_key = os.getenv("QDRANT_API_KEY")
 
         if qdrant_url:
-            print(f"Connecting to Qdrant Cloud server at: {qdrant_url}")
-            self.client = QdrantClient(url=qdrant_url, api_key=api_key)
+            print(f"Connecting to Qdrant Cloud server at: {qdrant_url} with timeout=60")
+            self.client = QdrantClient(url=qdrant_url, api_key=api_key, timeout=60)
         else:
             print(f"Using local Qdrant storage at: {storage_path}")
             self.client = QdrantClient(path=storage_path)
@@ -83,6 +83,7 @@ class CriminalLawRetriever:
         for hit in response.points:
             results.append({
                 "score": hit.score,
+                "point_id": hit.id,
                 "chunk_id": hit.payload.get("chunk_id"),
                 "act_id": hit.payload.get("act_id"),
                 "act_title": hit.payload.get("act_title"),
@@ -93,6 +94,78 @@ class CriminalLawRetriever:
                 "text": hit.payload.get("text"),
             })
         return results
+
+    def keyword_search(
+        self,
+        keywords: List[str],
+        collection_name: str,
+        limit: int = 20,
+        act_id: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Search for relevant criminal law sections matching any of the keyword terms in the payload 'text' field.
+        """
+        # Construct a Filter using MatchText for each keyword term
+        should_conditions = [
+            FieldCondition(
+                key="text",
+                match=MatchText(text=kw),
+            )
+            for kw in keywords if kw.strip()
+        ]
+
+        if not should_conditions:
+            return []
+
+        query_filter = Filter(should=should_conditions)
+        if act_id:
+            query_filter = Filter(
+                must=[
+                    FieldCondition(
+                        key="act_id",
+                        match=MatchValue(value=act_id),
+                    )
+                ],
+                should=should_conditions
+            )
+
+        response = self.client.scroll(
+            collection_name=collection_name,
+            scroll_filter=query_filter,
+            limit=limit,
+            with_payload=True,
+            with_vectors=False,
+        )
+
+        points = response[0]
+
+        results = []
+        for hit in points:
+            # We calculate a simple overlap score based on how many keywords match the text.
+            # This helps rank keyword search results before RRF or LLM reranking.
+            text_lower = hit.payload.get("text", "").lower()
+            overlap_count = sum(1 for kw in keywords if kw.lower() in text_lower)
+            score = float(overlap_count) / len(keywords) if keywords else 0.0
+
+            results.append({
+                "score": score,
+                "point_id": hit.id,
+                "chunk_id": hit.payload.get("chunk_id"),
+                "act_id": hit.payload.get("act_id"),
+                "act_title": hit.payload.get("act_title"),
+                "section_number": hit.payload.get("section_number"),
+                "section_title": hit.payload.get("section_title"),
+                "chapter": hit.payload.get("chapter"),
+                "source_label": hit.payload.get("source_label"),
+                "text": hit.payload.get("text"),
+            })
+
+        # Sort by overlap score descending
+        results.sort(key=lambda x: x["score"], reverse=True)
+        return results
+
+
+
 
 
 def main():
