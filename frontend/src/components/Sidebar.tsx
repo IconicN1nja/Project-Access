@@ -26,6 +26,8 @@ interface SidebarProps {
   onDeleteChat: (id: string, e: React.MouseEvent) => void;
   theme: string;
   onToggleTheme: () => void;
+  user: { id: string; email: string; name: string } | null;
+  onLogout: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -40,6 +42,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onDeleteChat,
   theme,
   onToggleTheme,
+  user,
+  onLogout,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -87,11 +91,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div
                 key={chat.id}
                 onClick={() => onSelectChat(chat.id)}
-                className={`group relative flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs cursor-pointer transition-colors ${
-                  isActive
+                className={`group relative flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs cursor-pointer transition-colors ${isActive
                     ? "bg-zinc-200/80 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium"
                     : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-zinc-200"
-                }`}>
+                  }`}>
                 <div className="flex items-center gap-2 min-w-0 flex-1 pr-1">
                   <MessageSquare className="w-3.5 h-3.5 shrink-0 opacity-60" />
                   <span className="truncate">{chat.title || "New chat"}</span>
@@ -139,11 +142,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sidebar Container with smooth width & translate transition */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 bg-zinc-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex flex-col justify-between transition-all duration-200 ease-in-out ${
-          isOpen
+        className={`fixed lg:static inset-y-0 left-0 z-50 bg-zinc-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex flex-col justify-between transition-all duration-200 ease-in-out ${isOpen
             ? "w-56 sm:w-60 translate-x-0 opacity-100"
             : "w-0 -translate-x-full lg:w-0 lg:translate-x-0 opacity-0 pointer-events-none border-none"
-        }`}>
+          }`}>
         <div className="w-56 sm:w-60 overflow-hidden flex flex-col flex-1">
           {/* Header */}
           <div className="h-14 px-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
@@ -206,6 +208,49 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </>
             )}
           </div>
+
+          {/* User Profile & Logout */}
+          {user && (
+            <div className="px-3 py-2 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-1.5 shrink-0 bg-zinc-100/30 dark:bg-zinc-950/20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0 pr-1">
+                  <div className="w-7 h-7 rounded-full bg-zinc-800 dark:bg-zinc-200 text-white dark:text-zinc-900 font-semibold text-xs flex items-center justify-center shrink-0 uppercase">
+                    {(user.name || user.email).charAt(0)}
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[11px] font-semibold truncate text-zinc-800 dark:text-zinc-200">
+                      {user.name || 'User'}
+                    </span>
+                    <span className="text-[9px] truncate text-zinc-500 dark:text-zinc-400">
+                      {user.email}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={onLogout}
+                  title="Log Out"
+                  className="p-1 rounded-md text-zinc-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors flex shrink-0"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="lucide lucide-log-out"
+                  >
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" x2="9" y1="12" y2="12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Minimal Footer with Dark/Light mode switch */}
           <div className="p-3 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0">

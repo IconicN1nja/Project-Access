@@ -12,7 +12,7 @@ try:
 except ImportError:
     from rag_chain import CriminalLawRAG
 
-app = FastAPI(title="Counselor AI - RAG API")
+app = FastAPI(title="Project Access")
 
 # Enable CORS for the Next.js development server
 app.add_middleware(
@@ -61,5 +61,5 @@ def handle_query(payload: QueryRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    print("Starting Counselor AI RAG API Server...")
+    print("Starting Project Access Server...")
     uvicorn.run(app, host="127.0.0.1", port=8000)

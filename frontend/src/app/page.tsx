@@ -9,8 +9,13 @@ import { ChatHeader } from '@/components/ChatHeader';
 import { MessageItem } from '@/components/MessageItem';
 import { ChatInput } from '@/components/ChatInput';
 import { ClearModal } from '@/components/Modals';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
+  const router = useRouter();
+  const [user, setUser] = useState<{ id: string; email: string; name: string } | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [theme, setTheme] = useState<'dark' | 'light' | 'system'>('dark');
@@ -25,23 +30,84 @@ export default function Home() {
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  const loadChatsForUser = async () => {
+    try {
+      const chatsRes = await fetch('/api/chats');
+      if (chatsRes.ok) {
+        const chatsData = await chatsRes.json();
+        const dbChats = chatsData.chats || [];
+        setChats(dbChats);
+
+        const loadedActiveId = Storage.getActiveChatId();
+        if (loadedActiveId && dbChats.some((c: any) => c.id === loadedActiveId)) {
+          setActiveChatId(loadedActiveId);
+        } else if (dbChats.length > 0) {
+          setActiveChatId(dbChats[0].id);
+          Storage.setActiveChatId(dbChats[0].id);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load chats:', err);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const res = await fetch('/api/auth/logout', { method: 'POST' });
+      if (res.ok) {
+        setUser(null);
+        setChats([]);
+        setActiveChatId(null);
+        Storage.setActiveChatId(null);
+        showToast('Logged out successfully');
+      } else {
+        showToast('Failed to log out', 'error');
+      }
+    } catch (err) {
+      console.error('Logout error:', err);
+      showToast('Error logging out', 'error');
+    }
+  };
+
   // 1. Initial Load & Theme
   useEffect(() => {
     const loadedTheme = Storage.getTheme();
-    const loadedChats = Storage.getChats();
-    const loadedActiveId = Storage.getActiveChatId();
-
     setTheme(loadedTheme);
-    setChats(loadedChats);
-
-    if (loadedActiveId && loadedChats.some(c => c.id === loadedActiveId)) {
-      setActiveChatId(loadedActiveId);
-    } else if (loadedChats.length > 0) {
-      setActiveChatId(loadedChats[0].id);
-      Storage.setActiveChatId(loadedChats[0].id);
-    }
-
     applyTheme(loadedTheme);
+
+    const checkAuthAndLoadChats = async () => {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.user) {
+            setUser(data.user);
+            
+            // Load chats from MongoDB
+            const chatsRes = await fetch('/api/chats');
+            if (chatsRes.ok) {
+              const chatsData = await chatsRes.json();
+              const dbChats = chatsData.chats || [];
+              setChats(dbChats);
+              
+              const loadedActiveId = Storage.getActiveChatId();
+              if (loadedActiveId && dbChats.some((c: any) => c.id === loadedActiveId)) {
+                setActiveChatId(loadedActiveId);
+              } else if (dbChats.length > 0) {
+                setActiveChatId(dbChats[0].id);
+                Storage.setActiveChatId(dbChats[0].id);
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error verifying auth:', err);
+      } finally {
+        setIsAuthLoading(false);
+      }
+    };
+
+    checkAuthAndLoadChats();
 
     // Initial sidebar state based on screen width
     if (typeof window !== 'undefined') {
@@ -59,13 +125,20 @@ export default function Home() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Redirect unauthenticated users to login
+  useEffect(() => {
+    if (!isAuthLoading && !user) {
+      router.push('/login');
+    }
+  }, [isAuthLoading, user, router]);
+
   // 2. Theme Applier
   const applyTheme = (t: string) => {
     if (typeof document === 'undefined') return;
     const root = document.documentElement;
     const body = document.body;
-    const isDark = t === 'system' 
-      ? window.matchMedia('(prefers-color-scheme: dark)').matches 
+    const isDark = t === 'system'
+      ? window.matchMedia('(prefers-color-scheme: dark)').matches
       : t === 'dark';
 
     if (isDark) {
@@ -106,7 +179,7 @@ export default function Home() {
   }, [activeChat?.messages, isGenerating]);
 
   // 3. Conversation Management
-  const handleNewChat = () => {
+  const handleNewChat = async () => {
     if (isGenerating) intelligence.abort();
     const newChat: Chat = {
       id: 'chat_' + Date.now(),
@@ -117,12 +190,25 @@ export default function Home() {
       messages: []
     };
 
-    const updated = [newChat, ...chats];
-    setChats(updated);
-    setActiveChatId(newChat.id);
-    Storage.saveChats(updated);
-    Storage.setActiveChatId(newChat.id);
-    setInput('');
+    try {
+      const res = await fetch('/api/chats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newChat),
+      });
+      if (res.ok) {
+        const updated = [newChat, ...chats];
+        setChats(updated);
+        setActiveChatId(newChat.id);
+        Storage.setActiveChatId(newChat.id);
+        setInput('');
+      } else {
+        showToast('Failed to create new chat', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Error creating new chat', 'error');
+    }
   };
 
   const handleSelectChat = (id: string) => {
@@ -134,45 +220,99 @@ export default function Home() {
     }
   };
 
-  const handleDeleteChat = (id: string, e: React.MouseEvent) => {
+  const handleDeleteChat = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const updated = chats.filter(c => c.id !== id);
-    setChats(updated);
-    Storage.saveChats(updated);
-
-    if (activeChatId === id) {
-      const nextActiveId = updated.length > 0 ? updated[0].id : null;
-      setActiveChatId(nextActiveId);
-      Storage.setActiveChatId(nextActiveId);
+    try {
+      const res = await fetch(`/api/chats/${id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        const updated = chats.filter(c => c.id !== id);
+        setChats(updated);
+        if (activeChatId === id) {
+          const nextActiveId = updated.length > 0 ? updated[0].id : null;
+          setActiveChatId(nextActiveId);
+          Storage.setActiveChatId(nextActiveId);
+        }
+        showToast('Chat deleted');
+      } else {
+        showToast('Failed to delete chat', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Error deleting chat', 'error');
     }
   };
 
-  const handleRenameChat = (id: string, e: React.MouseEvent) => {
+  const handleRenameChat = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     const chat = chats.find(c => c.id === id);
     if (!chat) return;
 
     const newTitle = prompt('Conversation title:', chat.title);
     if (newTitle && newTitle.trim()) {
-      const updated = chats.map(c => c.id === id ? { ...c, title: newTitle.trim(), updatedAt: Date.now() } : c);
-      setChats(updated);
-      Storage.saveChats(updated);
+      try {
+        const res = await fetch(`/api/chats/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: newTitle.trim() }),
+        });
+        if (res.ok) {
+          const updated = chats.map(c => c.id === id ? { ...c, title: newTitle.trim(), updatedAt: Date.now() } : c);
+          setChats(updated);
+        } else {
+          showToast('Failed to rename chat', 'error');
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('Error renaming chat', 'error');
+      }
     }
   };
 
-  const handlePinChat = (id: string, e: React.MouseEvent) => {
+  const handlePinChat = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const updated = chats.map(c => c.id === id ? { ...c, pinned: !c.pinned } : c);
-    setChats(updated);
-    Storage.saveChats(updated);
+    const chat = chats.find(c => c.id === id);
+    if (!chat) return;
+    const nextPinned = !chat.pinned;
+
+    try {
+      const res = await fetch(`/api/chats/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pinned: nextPinned }),
+      });
+      if (res.ok) {
+        const updated = chats.map(c => c.id === id ? { ...c, pinned: nextPinned } : c);
+        setChats(updated);
+      } else {
+        showToast('Failed to pin chat', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Error pinning chat', 'error');
+    }
   };
 
-  const handleClearChat = () => {
+  const handleClearChat = async () => {
     if (!activeChatId) return;
-    const updated = chats.map(c => c.id === activeChatId ? { ...c, messages: [], updatedAt: Date.now() } : c);
-    setChats(updated);
-    Storage.saveChats(updated);
-    showToast('Messages cleared');
+    try {
+      const res = await fetch(`/api/chats/${activeChatId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: [] }),
+      });
+      if (res.ok) {
+        const updated = chats.map(c => c.id === activeChatId ? { ...c, messages: [], updatedAt: Date.now() } : c);
+        setChats(updated);
+        showToast('Messages cleared');
+      } else {
+        showToast('Failed to clear chat', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Error clearing chat', 'error');
+    }
   };
 
   // 4. Send & Stream Message
@@ -187,13 +327,25 @@ export default function Home() {
     if (!currentChat) {
       currentChat = {
         id: 'chat_' + Date.now(),
-        title: textToSend.slice(0, 30) || 'New chat',
+        title: textToSend.length > 30 ? textToSend.substring(0, 30) + '...' : textToSend,
         createdAt: Date.now(),
         updatedAt: Date.now(),
         pinned: false,
         messages: []
       };
+
+      try {
+        await fetch('/api/chats', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(currentChat),
+        });
+      } catch (err) {
+        console.error('Failed to pre-save new chat:', err);
+      }
+
       currentChats = [currentChat, ...currentChats];
+      setChats(currentChats);
       setActiveChatId(currentChat.id);
       Storage.setActiveChatId(currentChat.id);
     }
@@ -222,7 +374,6 @@ export default function Home() {
     currentChat.updatedAt = Date.now();
 
     setChats(currentChats);
-    Storage.saveChats(currentChats);
 
     setInput('');
     setIsGenerating(true);
@@ -242,14 +393,33 @@ export default function Home() {
         botMessage.content += chunk;
         setChats([...currentChats]);
       },
-      onDone: () => {
+      onDone: async () => {
         setIsGenerating(false);
-        Storage.saveChats(currentChats);
+        try {
+          await fetch(`/api/chats/${currentChat.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title: currentChat.title,
+              messages: currentChat.messages
+            }),
+          });
+        } catch (err) {
+          console.error('Failed to save final messages:', err);
+        }
       },
-      onError: (err) => {
+      onError: async (err) => {
         setIsGenerating(false);
         botMessage.content += `\n\n> ⚠️ **Error**: ${err?.message || 'Failed to generate response'}`;
-        Storage.saveChats(currentChats);
+        try {
+          await fetch(`/api/chats/${currentChat.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages: currentChat.messages }),
+          });
+        } catch (saveErr) {
+          console.error('Failed to save error messages:', saveErr);
+        }
       }
     });
   };
@@ -259,7 +429,7 @@ export default function Home() {
     setIsGenerating(false);
   };
 
-  const handleRegenerate = (msgId: string) => {
+  const handleRegenerate = async (msgId: string) => {
     if (!activeChat || isGenerating) return;
     const msgIdx = activeChat.messages.findIndex(m => m.id === msgId);
     if (msgIdx === -1) return;
@@ -274,7 +444,16 @@ export default function Home() {
 
     activeChat.messages.splice(msgIdx, 1);
     setChats([...chats]);
-    Storage.saveChats(chats);
+
+    try {
+      await fetch(`/api/chats/${activeChat.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: activeChat.messages }),
+      });
+    } catch (err) {
+      console.error('Failed to sync regenerated chat:', err);
+    }
 
     if (prevUserText) {
       handleSendMessage(prevUserText);
@@ -285,6 +464,28 @@ export default function Home() {
     navigator.clipboard.writeText(text);
     showToast('Copied');
   };
+
+  if (isAuthLoading) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-10 h-10 border-3 border-zinc-900 border-t-transparent dark:border-white dark:border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Verifying session...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-10 h-10 border-3 border-zinc-900 border-t-transparent dark:border-white dark:border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Redirecting to login...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 transition-colors">
@@ -301,6 +502,8 @@ export default function Home() {
         onDeleteChat={handleDeleteChat}
         theme={theme}
         onToggleTheme={handleToggleTheme}
+        user={user}
+        onLogout={handleLogout}
       />
 
       {/* 2. Main Chat Viewport */}
