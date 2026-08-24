@@ -35,10 +35,10 @@ except ImportError:
     # Fallback if langchain packages are not imported
     ChatGroq = None
 
-DEFAULT_GROQ_MODEL = "openai/gpt-oss-120b"
+DEFAULT_GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
 
 RAG_PROMPT_TEMPLATE = """You are an authoritative legal AI assistant specializing in Indian Criminal Law for Project Access.
-Your task is to provide clear, accurate, and structured legal answers strictly based on the provided context retrieved from Indian Criminal Acts.
+Your task is to provide clear, accurate, and structured legal answers. You should prioritize the provided legal context retrieved from the database, but you must also draw upon your own comprehensive knowledge of Indian Criminal Law (BNS, BNSS, BSA, IPC, CrPC, and special acts) to provide a complete, correct, and legally sound answer.
 
 --- RETRIEVED LEGAL CONTEXT ---
 {context}
@@ -48,11 +48,11 @@ Question: {question}
 Expected Legal Concepts: {concepts}
 
 Instructions:
-1. Answer the question thoroughly based ONLY on the legal sections provided in the context above.
-2. Cite the exact Act Name, Chapter, and Section Number(s) (e.g. "Section 482 of Bharatiya Nagarik Suraksha Sanhita, 2023").
-3. Organize your answer clearly with markdown bullet points and headings.
-4. If the context does not contain enough information to fully answer, state what the context specifies and note any missing details. Mention how the expected legal concepts (e.g., conscious possession, burden of proof) apply to the case based on the retrieved sections.
-5. If the retrieved sections are insufficient or irrelevant to answer the question, clearly state: "Relevant legal provisions could not be retrieved with sufficient confidence." and briefly explain what was missing.
+1. Analyze the question. First, utilize the provided retrieved legal context to cite specific sections, chapters, acts, and procedural rules.
+2. If the retrieved context is incomplete or does not contain a specific definition/prohibition (e.g. for basic offenses like murder, theft, or assault), you MUST use your own legal knowledge to answer the question, explain the law, and state the correct legal status. Never claim an obviously illegal act might be lawful just because it isn't in the retrieved context.
+3. For the offence of murder, BNS Section 103 (or IPC Section 302/300) defines and punishes murder with death or imprisonment for life; clearly state that murder is highly unlawful and illegal under Indian Law.
+4. Cite relevant Act Names and Section Numbers clearly. Demarcate between retrieved database context and your supplemented general legal knowledge where appropriate.
+5. Organize your answer with clear markdown headings, bullet points, and a structured layout.
 
 Detailed Legal Answer:"""
 
@@ -65,7 +65,7 @@ class CriminalLawRAG:
         model_name: str = DEFAULT_GROQ_MODEL,
         groq_api_key: Optional[str] = None,
         top_k_retrieve: int = 20,
-        top_k_final: int = 5,
+        top_k_final: int = 3,
     ):
         self.groq_api_key = groq_api_key or os.getenv("GROQ_API_KEY")
         if not self.groq_api_key:
@@ -724,7 +724,7 @@ class CriminalLawRAG:
             if primary_col not in ["arms", "bnss", "domestic_violence", "ndps", "pocso", "uapa", "dca","dpa","irwa","pca","pmla","sc_st"]:
                 primary_col = collections[0]
 
-        for doc in reranked_results[:2]:
+        for doc in reranked_results[:1]:
             point_id = doc.get("point_id")
             if point_id:
                 adjacents = self.expand_related_sections(primary_col, point_id, distance=1)
@@ -746,18 +746,11 @@ class CriminalLawRAG:
         # 6. Retrieval Confidence / Relevance Check
         is_relevant = self.check_retrieval_relevance(reranked_results, keywords)
         
-        if not is_relevant:
-            answer = "Relevant legal provisions could not be retrieved with sufficient confidence."
-            return {
-                "question": question,
-                "answer": answer,
-                "retrieved_docs": final_retrieved_docs,
-                "formatted_context": self.format_docs(final_retrieved_docs),
-                "classified_collection": collections[0] if collections else "bnss",
-            }
-
         # 7. Generate Answer
-        formatted_context = self.format_docs(final_retrieved_docs)
+        if is_relevant:
+            formatted_context = self.format_docs(final_retrieved_docs)
+        else:
+            formatted_context = "No specific matching sections found in database context. Please answer the query using your own general knowledge of Indian Criminal Law (BNS, BNSS, IPC, CrPC, etc.) and state the legal position clearly."
         
         if not self.groq_api_key:
             return {

@@ -71,13 +71,25 @@ class CriminalLawRetriever:
                 ]
             )
 
-        response = self.client.query_points(
-            collection_name=collection_name,
-            query=query_vector,
-            query_filter=query_filter,
-            limit=limit,
-            score_threshold=score_threshold,
-        )
+        import time
+        last_error = None
+        response = None
+        for attempt in range(3):
+            try:
+                response = self.client.query_points(
+                    collection_name=collection_name,
+                    query=query_vector,
+                    query_filter=query_filter,
+                    limit=limit,
+                    score_threshold=score_threshold,
+                )
+                break
+            except Exception as e:
+                last_error = e
+                print(f"[Qdrant Search] Attempt {attempt + 1} failed: {e}. Retrying in 1s...")
+                time.sleep(1)
+        else:
+            raise BaseException
 
         results = []
         for hit in response.points:
@@ -129,13 +141,25 @@ class CriminalLawRetriever:
                 should=should_conditions
             )
 
-        response = self.client.scroll(
-            collection_name=collection_name,
-            scroll_filter=query_filter,
-            limit=limit,
-            with_payload=True,
-            with_vectors=False,
-        )
+        import time
+        last_error = None
+        response = None
+        for attempt in range(3):
+            try:
+                response = self.client.scroll(
+                    collection_name=collection_name,
+                    scroll_filter=query_filter,
+                    limit=limit,
+                    with_payload=True,
+                    with_vectors=False,
+                )
+                break
+            except Exception as e:
+                last_error = e
+                print(f"[Qdrant Scroll] Attempt {attempt + 1} failed: {e}. Retrying in 1s...")
+                time.sleep(1)
+        else:
+            raise BaseException
 
         points = response[0]
 

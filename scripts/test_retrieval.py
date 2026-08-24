@@ -50,7 +50,7 @@ def print_results(title: str, results: List[Dict[str, Any]], expected_sections: 
 
 def main():
     # Initialize RAG pipeline with top_k_final=10 for evaluation
-    rag = CriminalLawRAG(top_k_retrieve=20, top_k_final=10)
+    rag = CriminalLawRAG(top_k_retrieve=20, top_k_final=3)
     
     # Define the test cases
     tests = [

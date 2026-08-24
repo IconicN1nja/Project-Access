@@ -58,13 +58,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             onClick={isGenerating ? onStop : onSend}
             disabled={!isGenerating && !input.trim()}
             title={isGenerating ? 'Stop generation' : 'Send (Enter)'}
-            className={`p-2 rounded-lg transition-colors flex items-center justify-center flex-shrink-0 ${
-              isGenerating
-                ? 'bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-900'
-                : input.trim()
+            className={`p-2 rounded-lg transition-colors flex items-center justify-center flex-shrink-0 ${isGenerating
+              ? 'bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-900'
+              : input.trim()
                 ? 'bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 cursor-pointer'
                 : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed'
-            }`}
+              }`}
           >
             {isGenerating ? (
               <Square className="w-3.5 h-3.5 fill-current" />
