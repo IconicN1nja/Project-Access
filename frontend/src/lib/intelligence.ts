@@ -69,11 +69,13 @@ export class IntelligenceEngine {
         onSources(finalSources);
       }
 
-      // Stream the response to UI
+      // Stream the response to UI in chunks of words (~8-9 words at a time) for even faster rendering
       const words = finalAnswer.split(/(\s+)/);
-      for (const word of words) {
+      const chunkSize = 16; // Process 8 words and spaces at a time
+      for (let i = 0; i < words.length; i += chunkSize) {
         if (signal.aborted) return;
-        if (onChunk) onChunk(word);
+        const chunk = words.slice(i, i + chunkSize).join('');
+        if (onChunk) onChunk(chunk);
         await new Promise(r => setTimeout(r, 1));
       }
 

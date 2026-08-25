@@ -67,14 +67,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const groups = {
     pinned: filteredChats.filter((c) => c.pinned),
-    today: filteredChats.filter((c) => !c.pinned && c.updatedAt >= today),
-    yesterday: filteredChats.filter(
-      (c) => !c.pinned && c.updatedAt >= yesterday && c.updatedAt < today,
-    ),
-    pastWeek: filteredChats.filter(
-      (c) => !c.pinned && c.updatedAt >= pastWeek && c.updatedAt < yesterday,
-    ),
-    older: filteredChats.filter((c) => !c.pinned && c.updatedAt < pastWeek),
+    today: filteredChats.filter((c) => {
+      const t = new Date(c.updatedAt || c.createdAt || Date.now()).getTime();
+      return !c.pinned && t >= today;
+    }),
+    yesterday: filteredChats.filter((c) => {
+      const t = new Date(c.updatedAt || c.createdAt || Date.now()).getTime();
+      return !c.pinned && t >= yesterday && t < today;
+    }),
+    pastWeek: filteredChats.filter((c) => {
+      const t = new Date(c.updatedAt || c.createdAt || Date.now()).getTime();
+      return !c.pinned && t >= pastWeek && t < yesterday;
+    }),
+    older: filteredChats.filter((c) => {
+      const t = new Date(c.updatedAt || c.createdAt || Date.now()).getTime();
+      return !c.pinned && t < pastWeek;
+    }),
   };
 
   const renderGroup = (title: string, items: Chat[]) => {

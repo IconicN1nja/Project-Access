@@ -32,8 +32,8 @@ def get_qdrant_client(storage_path: str = DEFAULT_STORAGE_PATH) -> QdrantClient:
     api_key = os.getenv("QDRANT_API_KEY")
 
     if qdrant_url:
-        print(f"Connecting to Qdrant Cloud server at: {qdrant_url} with timeout=300")
-        return QdrantClient(url=qdrant_url, api_key=api_key, timeout=300)
+        print(f"Connecting to Qdrant Cloud server at: {qdrant_url} with timeout=300, port=443")
+        return QdrantClient(url=qdrant_url, port=443, api_key=api_key, timeout=300)
     else:
         print(f"Using local Qdrant storage at: {storage_path}")
         os.makedirs(storage_path, exist_ok=True)
