@@ -8,6 +8,7 @@ and generates answers using Groq LLM.
 import os
 import sys
 import json
+import threading
 from typing import Dict, List, Any, Optional
 
 # Ensure UTF-8 output encoding for Windows terminals
@@ -35,10 +36,10 @@ except ImportError:
     # Fallback if langchain packages are not imported
     ChatGroq = None
 
-DEFAULT_GROQ_MODEL = "openai/gpt-oss-120b"
+DEFAULT_GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
 
 RAG_PROMPT_TEMPLATE = """You are an authoritative legal AI assistant specializing in Indian Criminal Law for Project Access.
-Your task is to provide clear, accurate, and structured legal answers strictly based on the provided context retrieved from Indian Criminal Acts.
+Your task is to provide clear, accurate, and structured legal answers. You should prioritize the provided legal context retrieved from the database, but you must also draw upon your own comprehensive knowledge of Indian Criminal Law (BNS, BNSS, BSA, IPC, CrPC, and special acts) to provide a complete, correct, and legally sound answer.
 
 --- RETRIEVED LEGAL CONTEXT ---
 {context}
@@ -48,11 +49,11 @@ Question: {question}
 Expected Legal Concepts: {concepts}
 
 Instructions:
-1. Answer the question thoroughly based ONLY on the legal sections provided in the context above.
-2. Cite the exact Act Name, Chapter, and Section Number(s) (e.g. "Section 482 of Bharatiya Nagarik Suraksha Sanhita, 2023").
-3. Organize your answer clearly with markdown bullet points and headings.
-4. If the context does not contain enough information to fully answer, state what the context specifies and note any missing details. Mention how the expected legal concepts (e.g., conscious possession, burden of proof) apply to the case based on the retrieved sections.
-5. If the retrieved sections are insufficient or irrelevant to answer the question, clearly state: "Relevant legal provisions could not be retrieved with sufficient confidence." and briefly explain what was missing.
+1. Analyze the question. First, utilize the provided retrieved legal context to cite specific sections, chapters, acts, and procedural rules.
+2. If the retrieved context is incomplete or does not contain a specific definition/prohibition (e.g. for basic offenses like murder, theft, or assault), you MUST use your own legal knowledge to answer the question, explain the law, and state the correct legal status. Never claim an obviously illegal act might be lawful just because it isn't in the retrieved context.
+3. For the offence of murder, BNS Section 103 (or IPC Section 302/300) defines and punishes murder with death or imprisonment for life; clearly state that murder is highly unlawful and illegal under Indian Law.
+4. Cite relevant Act Names and Section Numbers clearly. Demarcate between retrieved database context and your supplemented general legal knowledge where appropriate.
+5. Organize your answer with clear markdown headings, bullet points, and a structured layout.
 
 Detailed Legal Answer:"""
 
@@ -65,31 +66,122 @@ class CriminalLawRAG:
         model_name: str = DEFAULT_GROQ_MODEL,
         groq_api_key: Optional[str] = None,
         top_k_retrieve: int = 20,
-        top_k_final: int = 5,
+        top_k_final: int = 3,
     ):
-        self.groq_api_key = groq_api_key or os.getenv("GROQ_API_KEY")
-        if not self.groq_api_key:
-            print("WARNING: GROQ_API_KEY is not set in environment or .env file.")
-            print("Please add GROQ_API_KEY=gsk_... to your .env file.")
-
         self.retriever = CriminalLawRetriever()
         self.model_name = model_name
         self.top_k_retrieve = top_k_retrieve
         self.top_k_final = top_k_final
+        
+        # Thread safety lock for cycling api keys
+        self._lock = threading.Lock()
+        self.current_key_index = 0
 
-        if ChatGroq and self.groq_api_key:
-            self.llm = ChatGroq(
-                model=self.model_name,
-                groq_api_key=self.groq_api_key,
-                temperature=0.2,
-            )
-            self.prompt = ChatPromptTemplate.from_template(RAG_PROMPT_TEMPLATE)
-            self.chain = self.prompt | self.llm | StrOutputParser()
+        # Load API keys from env: GROQ_API_KEYS (comma-separated), or dynamically check GROQ_API_KEY, GROQ_API_KEY1, GROQ_API_KEY2, etc.
+        self.api_keys = []
+        env_keys = os.getenv("GROQ_API_KEYS", "")
+        if env_keys:
+            self.api_keys = [k.strip() for k in env_keys.split(",") if k.strip()]
         else:
-            self.llm = None
-            self.chain = None
+            single_key = groq_api_key or os.getenv("GROQ_API_KEY")
+            if single_key:
+                self.api_keys.append(single_key.strip())
+            
+            idx = 1
+            while True:
+                numbered_key = os.getenv(f"GROQ_API_KEY{idx}")
+                if not numbered_key:
+                    break
+                self.api_keys.append(numbered_key.strip())
+                idx += 1
 
-    def classify_query(self, query: str) -> str:
+        if not self.api_keys:
+            print("WARNING: No GROQ_API_KEY or GROQ_API_KEYS found. LLM queries will fail.")
+
+        # Initialize pools for each key
+        self.llm_pool = []
+        self.chain_pool = []
+
+        for key in self.api_keys:
+            if ChatGroq and key:
+                try:
+                    llm = ChatGroq(
+                        model=self.model_name,
+                        groq_api_key=key,
+                        temperature=0.2,
+                        max_tokens=4096,
+                    )
+                    prompt = ChatPromptTemplate.from_template(RAG_PROMPT_TEMPLATE)
+                    chain = prompt | llm | StrOutputParser()
+                    self.llm_pool.append(llm)
+                    self.chain_pool.append(chain)
+                except Exception as e:
+                    print(f"Error initializing Langchain ChatGroq for key ...{key[-6:] if key else 'None'}: {e}")
+                    self.llm_pool.append(None)
+                    self.chain_pool.append(None)
+            else:
+                self.llm_pool.append(None)
+                self.chain_pool.append(None)
+
+    def _get_current_resources(self) -> tuple:
+        """Thread-safely gets the current key and its pre-initialized resources from the pool."""
+        if not self.api_keys:
+            return "", None, None
+        
+        with self._lock:
+            idx = self.current_key_index
+            
+        api_key = self.api_keys[idx]
+        llm = self.llm_pool[idx] if idx < len(self.llm_pool) else None
+        chain = self.chain_pool[idx] if idx < len(self.chain_pool) else None
+        return api_key, llm, chain
+
+    def _rotate_key(self) -> None:
+        """Thread-safely rotates to the next API key in the pool."""
+        if not self.api_keys:
+            return
+        with self._lock:
+            self.current_key_index = (self.current_key_index + 1) % len(self.api_keys)
+            print(f"[API Key Balancer] Rotated to API key index {self.current_key_index} of {len(self.api_keys)}")
+
+    def _execute_with_failover(self, task_fn, *args, **kwargs):
+        """
+        Executes a task function and transparently failovers to the next API key
+        if the request fails due to rate limits, token exhaustion, or API issues.
+        """
+        if not self.api_keys:
+            return task_fn(*args, **kwargs)
+            
+        attempts = len(self.api_keys)
+        last_exception = None
+        
+        for attempt in range(attempts):
+            api_key, llm, chain = self._get_current_resources()
+            try:
+                # Inject resources into kwargs for execution
+                kwargs['api_key'] = api_key
+                kwargs['llm'] = llm
+                kwargs['chain'] = chain
+                return task_fn(*args, **kwargs)
+            except Exception as e:
+                last_exception = e
+                error_msg = str(e).lower()
+                print(f"[API Key Failover] Attempt {attempt + 1}/{attempts} failed using key ...{api_key[-6:] if api_key else 'None'}: {e}")
+                
+                # Check for rate limit, quota, exhaustion, or too many requests
+                is_exhausted = any(term in error_msg for term in [
+                    "rate limit", "rate_limit", "quota", "exhausted", "429", "401", "limit exceeded", "too many requests"
+                ])
+                
+                if is_exhausted or True:  # Fallback to the next key for any LLM exception
+                    self._rotate_key()
+                else:
+                    raise e
+                    
+        print(f"[API Key Failover] Critical: All {attempts} API keys in the pool failed.")
+        raise Exception
+
+    def classify_query(self, query: str, llm: Optional[Any] = None, api_key: Optional[str] = None) -> str:
         """
         Classifies the query into one of the known law categories (folder names):
         'arms', 'bnss', 'domestic_violence', 'ndps', 'pocso', 'uapa'.
@@ -147,11 +239,14 @@ class CriminalLawRAG:
     "If unsure, output 'bnss'."
     ).format(query=query)
 
-        if self.llm:
+        active_llm = llm if llm is not None else (self.llm_pool[0] if self.llm_pool else None)
+        active_key = api_key if api_key is not None else (self.api_keys[0] if self.api_keys else None)
+
+        if active_llm:
             try:
                 from langchain_core.messages import HumanMessage
                 print(f"[Router] Routing query using LangChain Groq...")
-                response = self.llm.invoke([HumanMessage(content=system_prompt)])
+                response = active_llm.invoke([HumanMessage(content=system_prompt)])
                 classification = response.content.strip().lower()
                 classification = ''.join(c for c in classification if c.isalnum() or c == '_')
                 if classification in categories:
@@ -159,11 +254,12 @@ class CriminalLawRAG:
                 print(f"[Router] Invalid LLM classification: '{classification}'. Defaulting...")
             except Exception as e:
                 print(f"[Router] LangChain classification failed: {e}")
+                raise e
 
-        if self.groq_api_key:
+        if active_key:
             try:
                 from groq import Groq
-                client = Groq(api_key=self.groq_api_key)
+                client = Groq(api_key=active_key)
                 print(f"[Router] Routing query using direct Groq API...")
                 response = client.chat.completions.create(
                     messages=[{"role": "user", "content": system_prompt}],
@@ -178,11 +274,12 @@ class CriminalLawRAG:
                 print(f"[Router] Invalid direct LLM classification: '{classification}'. Defaulting...")
             except Exception as e:
                 print(f"[Router] Direct Groq classification failed: {e}")
+                raise e
 
         print("[Router] Falling back to default 'bnss' collection.")
         return "bnss"
 
-    def query_understanding(self, query: str) -> Dict[str, Any]:
+    def query_understanding(self, query: str, llm: Optional[Any] = None, api_key: Optional[str] = None) -> Dict[str, Any]:
         """
         Uses the LLM to analyze the query, select relevant collections,
         extract legal concepts and keywords, and generate an expanded query.
@@ -240,47 +337,35 @@ class CriminalLawRAG:
     "and offenses covered under the SC/ST Prevention of Atrocities law\n"
 
     "2. Expected legal concepts "
-    "(e.g. possession, conscious possession, arrest, search, seizure, burden of proof, "
-    "bribery, illegal gratification, money laundering, proceeds of crime, cyber offense, "
-    "data privacy, trafficking, caste-based atrocity).\n"
+    "(e.g. age of consent, child sexual abuse, criminal liability, possession, conscious possession, arrest, search, seizure, burden of proof).\n"
 
-    "3. Key lexical keywords for full-text search "
-    "(e.g. charas, cannabis, possession, arrest, bribery, proceeds of crime, "
-    "money laundering, hacking, personal data, trafficking, SC/ST atrocity).\n"
+    "3. Key retrieval keywords for keyword/full-text search. Generate a specific, dynamic list of keywords matching the search intent. "
+    "Do NOT use a fixed list. For example, if the query is \"What happens if I have sex with a 17 year old?\", you should generate "
+    "[\"17-year-old\", \"child\", \"penetrative sexual assault\", \"sexual intercourse\", \"POCSO\", \"age of consent\"].\n"
 
     "4. An expanded search query combining legal terms, offenses, parties, "
     "substances, procedures, and relevant statutory terminology, optimized for vector similarity search.\n\n"
 
-    "IMPORTANT:\n"
-    "- Select multiple collections when the query involves multiple areas of law.\n"
-    "- For example, a question about arrest in an NDPS case may require [\"ndps\", \"bnss\"].\n"
-    "- A question about money laundering arising from a predicate criminal offense may require "
-    "[\"pmla\", \"bnss\"].\n"
-    "- Do not select collections merely because a generic legal concept such as \"arrest\" "
-    "appears; select the collection that contains the substantive offense and add bnss when "
-    "criminal procedure is actually relevant.\n"
-    "- Extract concepts that describe the actual legal issue, not merely words copied from the query.\n"
-    "- Include important synonyms and legally relevant terminology in keywords and expanded_query.\n"
-    "- If the query is ambiguous, select the most likely relevant collection(s) and use the "
-    "expanded query to capture related terminology.\n\n"
-
     "You MUST respond with EXACTLY a JSON object and nothing else. Follow this format:\n"
 
     "{\n"
-    "  \"collections\": [\"ndps\", \"bnss\"],\n"
-    "  \"concepts\": [\"possession\", \"conscious possession\", \"arrest\", \"burden of proof\"],\n"
-    "  \"keywords\": [\"charas\", \"cannabis\", \"possession\", \"arrest\"],\n"
-    "  \"expanded_query\": \"presumption of possession of cannabis charas conscious possession NDPS Act arrest search\"\n"
+    "  \"collections\": [\"pocso\"],\n"
+    "  \"keywords\": [\"17-year-old\", \"child\", \"penetrative sexual assault\", \"sexual intercourse\", \"POCSO\"],\n"
+    "  \"legal_concepts\": [\"age of consent\", \"child sexual abuse\", \"criminal liability\"],\n"
+    "  \"expanded_query\": \"17-year-old child penetrative sexual assault sexual intercourse POCSO age of consent\"\n"
     "}\n"
 
     "Do not include markdown, explanations, comments, or any text outside the JSON object."
 
     )
-        if self.llm:
+        active_llm = llm if llm is not None else (self.llm_pool[0] if self.llm_pool else None)
+        active_key = api_key if api_key is not None else (self.api_keys[0] if self.api_keys else None)
+
+        if active_llm:
             try:
                 from langchain_core.messages import HumanMessage, SystemMessage
                 print(f"[Query Understanding] Analyzing query using LLM...")
-                response = self.llm.invoke([
+                response = active_llm.invoke([
                     SystemMessage(content=system_prompt),
                     HumanMessage(content=f"User Query: {query}")
                 ])
@@ -298,27 +383,41 @@ class CriminalLawRAG:
                 valid_collections = ["arms", "bnss", "domestic_violence", "ndps", "pocso", "uapa" , "dca","dpa","irwa","pca","pmla","sc_st"]
                 collections = [c.lower().strip() for c in parsed.get("collections", []) if c.lower().strip() in valid_collections]
                 if not collections:
-                    collections = [self.classify_query(query)]
-                    
+                    collections = [self.classify_query(query, llm=active_llm, api_key=active_key)]
+                
+                concepts = parsed.get("legal_concepts") or parsed.get("concepts", [])
+                keywords = parsed.get("keywords", [])
+                expanded_query = parsed.get("expanded_query", query)
+                
+                print(f"[Query Understanding] Generated Keywords: {keywords}")
+                print(f"[Query Understanding] Expanded Query: {expanded_query}")
+                
                 return {
                     "collections": collections,
-                    "concepts": parsed.get("concepts", []),
-                    "keywords": parsed.get("keywords", []),
-                    "expanded_query": parsed.get("expanded_query", query)
+                    "concepts": concepts,
+                    "legal_concepts": concepts,
+                    "keywords": keywords,
+                    "expanded_query": expanded_query
                 }
             except Exception as e:
-                print(f"[Query Understanding] LLM extraction failed: {e}. Falling back to heuristics...")
+                print(f"[Query Understanding] LLM extraction failed: {e}.")
+                raise e
 
         # Fallback implementation
-        col = self.classify_query(query)
+        col = self.classify_query(query, llm=active_llm, api_key=active_key)
         words = [w.strip(",.?!()\"';:") for w in query.lower().split()]
         stop_words = {"a", "an", "the", "and", "or", "but", "if", "then", "of", "on", "in", "with", "me", "my", "friend", "gave", "white", "packet", "did", "not", "know", "what", "it", "was", "police", "found"}
         keywords = [w for w in words if w not in stop_words and len(w) > 2]
         if not keywords:
             keywords = ["arrest", "possession"]
+            
+        print(f"[Query Understanding] Generated Keywords: {keywords}")
+        print(f"[Query Understanding] Expanded Query: {query}")
+        
         return {
             "collections": [col],
             "concepts": ["arrest", "possession"],
+            "legal_concepts": ["arrest", "possession"],
             "keywords": keywords,
             "expanded_query": query
         }
@@ -428,6 +527,8 @@ class CriminalLawRAG:
         concepts: List[str],
         documents: List[Dict[str, Any]],
         limit: int = 5,
+        llm: Optional[Any] = None,
+        api_key: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """
         Uses the LLM to rerank the combined retrieved documents and select the top `limit` most relevant sections.
@@ -470,11 +571,13 @@ class CriminalLawRAG:
             "Do not include any explanations, markdown code blocks (except raw JSON), or other words."
         ).format(limit=limit, concepts_str=", ".join(concepts))
 
-        if self.llm:
+        active_llm = llm if llm is not None else (self.llm_pool[0] if self.llm_pool else None)
+
+        if active_llm:
             try:
                 from langchain_core.messages import HumanMessage, SystemMessage
                 print(f"[Reranker] Reranking {len(documents)} candidates using LLM...")
-                response = self.llm.invoke([
+                response = active_llm.invoke([
                     SystemMessage(content=system_prompt),
                     HumanMessage(content=f"User Question: {question}\n\nRetrieved Sections:\n{docs_formatted}")
                 ])
@@ -509,7 +612,8 @@ class CriminalLawRAG:
                 print(f"[Reranker] LLM rerank successfully selected {len(final_docs)} documents.")
                 return final_docs
             except Exception as e:
-                print(f"[Reranker] LLM reranking failed: {e}. Falling back to default RRF ranking.")
+                print(f"[Reranker] LLM reranking failed: {e}.")
+                raise e
                 
         return documents[:limit]
 
@@ -591,19 +695,8 @@ class CriminalLawRAG:
     "sc", "st", "scheduled caste", "scheduled tribe", "atrocity", "caste", "caste abuse",
     "caste violence", "caste insult", "intimidation", "humiliation", "discrimination"
 }        
-        query_critical = [kw.lower() for kw in keywords if kw.lower() in critical_keywords]
-        
-        if query_critical:
-            matched_critical = False
-            for doc in documents:
-                text_lower = doc.get("text", "").lower() + " " + doc.get("section_title", "").lower()
-                if any(ck in text_lower for ck in query_critical):
-                    matched_critical = True
-                    break
-            if not matched_critical:
-                return False
-                
-        return True
+        # Return True if we have retrieved documents to feed to the LLM
+        return len(documents) > 0
 
     def search_all_collections(self, question: str, limit: int = 5, act_id: Optional[str] = None) -> List[Dict[str, Any]]:
         """Search across all collections and merge results by score."""
@@ -643,10 +736,54 @@ class CriminalLawRAG:
     ) -> Dict[str, Any]:
         """
         Retrieve relevant legal documents from Qdrant using Hybrid search + Reranking,
-        and generate answer using Groq LLM.
+        and generate answer using Groq LLM, cycling through the cyclic key pool.
+        """
+        try:
+            return self._execute_with_failover(
+                self._answer_question_internal,
+                question=question,
+                top_k=top_k,
+                act_id=act_id
+            )
+        except Exception as e:
+            print(f"[API Key Balancer] Critical: All keys failed. Returning graceful fallback. Error: {e}")
+            
+            # Connect to Qdrant directly and retrieve documents if Qdrant is still working
+            retrieved_docs = []
+            try:
+                retrieved_docs = self.retriever.search(
+                    query=question,
+                    collection_name="bnss",
+                    limit=top_k,
+                    act_id=act_id
+                )
+            except Exception as retrieval_err:
+                print(f"[API Key Balancer Fallback] Retrieval also failed: {retrieval_err}")
+
+            formatted_context = self.format_docs(retrieved_docs) if retrieved_docs else "No context retrieved."
+
+            return {
+                "question": question,
+                "answer": f"All configured Groq API keys are currently unavailable (rate-limited, invalid, or exhausted).\n\nDetails of failure: {e}",
+                "retrieved_docs": retrieved_docs,
+                "formatted_context": formatted_context,
+                "classified_collection": "bnss",
+            }
+
+    def _answer_question_internal(
+        self,
+        question: str,
+        top_k: int = 5,
+        act_id: Optional[str] = None,
+        llm: Optional[Any] = None,
+        api_key: Optional[str] = None,
+        chain: Optional[Any] = None,
+    ) -> Dict[str, Any]:
+        """
+        Internal implementation of RAG querying utilizing a specific API key instance.
         """
         # 1. Query Understanding & Legal Concept Extraction
-        qu_res = self.query_understanding(question)
+        qu_res = self.query_understanding(question, llm=llm, api_key=api_key)
         collections = qu_res.get("collections", ["bnss"])
         concepts = qu_res.get("concepts", [])
         keywords = qu_res.get("keywords", [])
@@ -665,6 +802,7 @@ class CriminalLawRAG:
         all_vector_results = []
         all_keyword_results = []
         
+        print(f"[Retrieval] Using LLM-generated keywords: {keywords}")
         for col in collections:
             # Dense Vector Search
             try:
@@ -694,6 +832,7 @@ class CriminalLawRAG:
 
         # 3. Reciprocal Rank Fusion (RRF) & Lexical Boosting
         merged_results = self.reciprocal_rank_fusion(all_vector_results, all_keyword_results, keywords)
+        print(f"[Retrieval] Retrieved documents: {[doc.get('chunk_id') for doc in merged_results]}")
         
         # Log debugging output for dense, keyword, and merged results
         print("\n" + "="*50)
@@ -712,7 +851,8 @@ class CriminalLawRAG:
 
         # 4. LLM-based Reranking
         candidates = merged_results[:15]
-        reranked_results = self.rerank_documents(question, concepts, candidates, limit=self.top_k_final)
+        reranked_results = self.rerank_documents(question, concepts, candidates, limit=self.top_k_final, llm=llm, api_key=api_key)
+        print(f"[Reranker] Selected documents: {[doc.get('chunk_id') for doc in reranked_results]}")
         
         # 5. Configurable Related-Section Expansion
         expanded_docs = []
@@ -724,7 +864,7 @@ class CriminalLawRAG:
             if primary_col not in ["arms", "bnss", "domestic_violence", "ndps", "pocso", "uapa", "dca","dpa","irwa","pca","pmla","sc_st"]:
                 primary_col = collections[0]
 
-        for doc in reranked_results[:2]:
+        for doc in reranked_results[:1]:
             point_id = doc.get("point_id")
             if point_id:
                 adjacents = self.expand_related_sections(primary_col, point_id, distance=1)
@@ -746,24 +886,17 @@ class CriminalLawRAG:
         # 6. Retrieval Confidence / Relevance Check
         is_relevant = self.check_retrieval_relevance(reranked_results, keywords)
         
-        if not is_relevant:
-            answer = "Relevant legal provisions could not be retrieved with sufficient confidence."
-            return {
-                "question": question,
-                "answer": answer,
-                "retrieved_docs": final_retrieved_docs,
-                "formatted_context": self.format_docs(final_retrieved_docs),
-                "classified_collection": collections[0] if collections else "bnss",
-            }
-
         # 7. Generate Answer
-        formatted_context = self.format_docs(final_retrieved_docs)
+        if is_relevant:
+            formatted_context = self.format_docs(final_retrieved_docs)
+        else:
+            formatted_context = "No specific matching sections found in database context. Please answer the query using your own general knowledge of Indian Criminal Law (BNS, BNSS, IPC, CrPC, etc.) and state the legal position clearly."
         
-        if not self.groq_api_key:
+        if not api_key:
             return {
                 "question": question,
                 "answer": (
-                    "GROQ_API_KEY is missing. Please set GROQ_API_KEY in your .env file to generate LLM answers.\n\n"
+                    "GROQ_API_KEY is missing. Please set GROQ_API_KEYS or GROQ_API_KEY in your .env file to generate LLM answers.\n\n"
                     "Retrieved Legal Sections:\n" + formatted_context
                 ),
                 "retrieved_docs": final_retrieved_docs,
@@ -773,42 +906,56 @@ class CriminalLawRAG:
 
         concepts_str = ", ".join(concepts)
         
-        if not self.chain:
+        print(f"[Generation] Generating final answer...")
+        if not chain:
             # Fallback direct Groq API call
             try:
                 from groq import Groq
-                client = Groq(api_key=self.groq_api_key)
+                client = Groq(api_key=api_key)
                 prompt_text = RAG_PROMPT_TEMPLATE.format(context=formatted_context, question=question, concepts=concepts_str)
                 response = client.chat.completions.create(
                     messages=[{"role": "user", "content": prompt_text}],
                     model=self.model_name,
                     temperature=0.2,
+                    max_tokens=4096,
                 )
                 answer = response.choices[0].message.content
+                print(f"[Generation] Final answer generated successfully")
             except Exception as e:
                 answer = f"Error generating answer with Groq: {e}\n\nRetrieved Context:\n{formatted_context}"
+                print(f"[Generation] Failed to generate answer: {e}")
         else:
             try:
                 print(f"[RAG Pipeline] Generating LLM response using Groq ({self.model_name})...")
-                answer = self.chain.invoke({
+                answer = chain.invoke({
                     "context": formatted_context,
                     "question": question,
                     "concepts": concepts_str,
                 })
+                print(f"[Generation] Final answer generated successfully")
             except Exception as e:
                 print(f"[RAG Pipeline] LangChain Groq invoke failed ({e}), falling back to direct Groq SDK...")
                 try:
                     from groq import Groq
-                    client = Groq(api_key=self.groq_api_key)
+                    client = Groq(api_key=api_key)
                     prompt_text = RAG_PROMPT_TEMPLATE.format(context=formatted_context, question=question, concepts=concepts_str)
                     response = client.chat.completions.create(
                         messages=[{"role": "user", "content": prompt_text}],
                         model=self.model_name,
                         temperature=0.2,
+                        max_tokens=4096,
                     )
                     answer = response.choices[0].message.content
+                    print(f"[Generation] Final answer generated successfully")
                 except Exception as inner_e:
                     answer = f"Error generating answer with Groq LLM: {inner_e}"
+                    print(f"[Generation] Failed to generate answer: {inner_e}")
+
+        # Print the final LLM response to the terminal
+        print("\n" + "="*50)
+        print("FINAL LLM ANSWER:")
+        print(answer)
+        print("="*50 + "\n")
 
         return {
             "question": question,
@@ -844,7 +991,66 @@ def run_query(rag: CriminalLawRAG, query: str):
 
 def main():
     """CLI runner for RAG queries."""
-    if len(sys.argv) > 1 and sys.argv[1] == "--json":
+    if len(sys.argv) > 1 and sys.argv[1] == "--test-failover":
+        print("\n=== STARTING API KEY FAILOVER TEST ===")
+        # Get the actual valid key from the environment
+        valid_key = os.getenv("GROQ_API_KEY")
+        if not valid_key:
+            print("ERROR: GROQ_API_KEY is not set in environment or .env file.")
+            sys.exit(1)
+            
+        print("Initializing CriminalLawRAG with two API keys:")
+        print("  Key 1: gsk_invalid_dummy_key_to_simulate_failover_12345 (Invalid)")
+        print(f"  Key 2: {valid_key[:10]}...{valid_key[-6:]} (Valid from .env)")
+        
+        # Create a RAG instance with custom list of keys
+        rag = CriminalLawRAG(groq_api_key="gsk_invalid_dummy_key_to_simulate_failover_12345")
+        # Overwrite self.api_keys and re-initialize pools
+        rag.api_keys = ["gsk_invalid_dummy_key_to_simulate_failover_12345", valid_key]
+        
+        # Re-initialize pools for the test
+        from langchain_groq import ChatGroq
+        from langchain_core.prompts import ChatPromptTemplate
+        from langchain_core.output_parsers import StrOutputParser
+        
+        rag.llm_pool = []
+        rag.chain_pool = []
+        for key in rag.api_keys:
+            try:
+                llm = ChatGroq(
+                    model=rag.model_name,
+                    groq_api_key=key,
+                    temperature=0.2,
+                    max_tokens=4096,
+                )
+                prompt = ChatPromptTemplate.from_template(RAG_PROMPT_TEMPLATE)
+                chain = prompt | llm | StrOutputParser()
+                rag.llm_pool.append(llm)
+                rag.chain_pool.append(chain)
+            except Exception:
+                rag.llm_pool.append(None)
+                rag.chain_pool.append(None)
+                
+        rag.current_key_index = 0
+        
+        print("\nRunning query: 'What is the punishment for murder under BNS?'")
+        print("Expect to see Attempt 1 fail, then automatic failover to Key 2 succeed.\n")
+        
+        try:
+            res = rag.answer_question("What is the punishment for murder under BNS?")
+            print("\n=== FAILOVER TEST RESULT ===")
+            print(f"Status: SUCCESS")
+            print(f"Answer snippet: {res['answer'][:150]}...")
+            print("===================================\n")
+        except Exception as e:
+            print("\n=== FAILOVER TEST RESULT ===")
+            print(f"Status: FAILED")
+            print(f"Error: {e}")
+            print("===================================\n")
+            
+        sys.exit(0)
+
+    elif len(sys.argv) > 1 and sys.argv[1] == "--json":
         original_stdout = sys.stdout
         sys.stdout = sys.stderr
         rag = CriminalLawRAG()

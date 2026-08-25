@@ -16,11 +16,12 @@ export async function POST(req: Request) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: query }),
-        signal: AbortSignal.timeout(15000) // 15s timeout for LLM inference
+        signal: AbortSignal.timeout(90000) // 90s timeout for LLM inference
       });
 
       if (ragResponse.ok) {
         const data = await ragResponse.json();
+        console.log(data.answer);
         return NextResponse.json({
           answer: data.answer,
           classified_collection: data.classified_collection,
