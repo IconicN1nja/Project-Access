@@ -82,14 +82,14 @@ export default function Home() {
           const data = await res.json();
           if (data.success && data.user) {
             setUser(data.user);
-            
+
             // Load chats from MongoDB
             const chatsRes = await fetch('/api/chats');
             if (chatsRes.ok) {
               const chatsData = await chatsRes.json();
               const dbChats = chatsData.chats || [];
               setChats(dbChats);
-              
+
               const loadedActiveId = Storage.getActiveChatId();
               if (loadedActiveId && dbChats.some((c: any) => c.id === loadedActiveId)) {
                 setActiveChatId(loadedActiveId);
@@ -203,7 +203,12 @@ export default function Home() {
         Storage.setActiveChatId(newChat.id);
         setInput('');
       } else {
-        showToast('Failed to create new chat', 'error');
+        if (res.status === 401) {
+          setUser(null);
+          router.push('/login');
+        } else {
+          showToast('Failed to create new chat', 'error');
+        }
       }
     } catch (err) {
       console.error(err);

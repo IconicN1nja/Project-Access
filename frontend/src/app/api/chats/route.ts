@@ -13,7 +13,7 @@ export async function GET() {
 
     await dbConnect();
 
-    const chats = await Chat.find({ userId }).sort({ updatedAt: -1 });
+    const chats = await Chat.find({ $or: [{ userId }, { user_id: userId }] }).sort({ updatedAt: -1 });
 
     return NextResponse.json({ success: true, chats });
   } catch (error: any) {
@@ -44,6 +44,7 @@ export async function POST(req: Request) {
     const newChat = new Chat({
       id,
       userId,
+      user_id: userId,
       title: title || 'New chat',
       pinned: pinned || false,
       messages: messages || [],

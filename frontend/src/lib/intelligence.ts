@@ -74,7 +74,7 @@ export class IntelligenceEngine {
       for (const word of words) {
         if (signal.aborted) return;
         if (onChunk) onChunk(word);
-        await new Promise(r => setTimeout(r, 10));
+        await new Promise(r => setTimeout(r, 1));
       }
 
       if (onDone) onDone();
