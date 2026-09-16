@@ -1,5 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&display=swap");
 
 @import "tailwindcss";
 
@@ -7,6 +8,7 @@
 
 :root {
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Newsreader', Georgia, Cambria, 'Times New Roman', Times, serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
 
@@ -244,4 +246,13 @@ details[open] summary svg.chevron-icon {
 
 .toast-exit {
   animation: toastOut 0.15s ease-in forwards;
+}
+
+/* Hero Background Gradient Mesh from Figma Design */
+.hero-bg-mesh {
+  background: radial-gradient(circle at 50% 0%, #294747 0%, #1c2738 45%, #182030 100%);
+}
+
+.font-serif {
+  font-family: var(--font-serif);
 }

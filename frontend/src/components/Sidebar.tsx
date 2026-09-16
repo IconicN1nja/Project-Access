@@ -157,16 +157,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="w-56 sm:w-60 overflow-hidden flex flex-col flex-1">
           {/* Header */}
           <div className="h-14 px-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-2.5">
+            <button
+              onClick={onNewChat}
+              title="Return to homepage"
+              className="flex items-center gap-2.5 text-left group"
+            >
               <img
                 src="/icon.jpeg"
                 alt="Project Access Logo"
-                className="w-7 h-7 rounded-lg object-cover border border-zinc-200 dark:border-zinc-800"
+                className="w-7 h-7 rounded-lg object-cover border border-zinc-200 dark:border-zinc-800 group-hover:scale-105 transition-transform"
               />
-              <span className="font-semibold text-sm tracking-tight text-zinc-900 dark:text-zinc-100">
+              <span className="font-semibold text-sm tracking-tight text-zinc-900 dark:text-zinc-100 group-hover:text-emerald-500 transition-colors">
                 Project Access
               </span>
-            </div>
+            </button>
 
             <button
               onClick={onToggle}

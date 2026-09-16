@@ -8,6 +8,7 @@ import { Sidebar } from '@/components/Sidebar';
 import { ChatHeader } from '@/components/ChatHeader';
 import { MessageItem } from '@/components/MessageItem';
 import { ChatInput } from '@/components/ChatInput';
+import { HeroHomepage } from '@/components/HeroHomepage';
 import { ClearModal } from '@/components/Modals';
 import { useRouter } from 'next/navigation';
 
@@ -93,9 +94,10 @@ export default function Home() {
               const loadedActiveId = Storage.getActiveChatId();
               if (loadedActiveId && dbChats.some((c: any) => c.id === loadedActiveId)) {
                 setActiveChatId(loadedActiveId);
-              } else if (dbChats.length > 0) {
-                setActiveChatId(dbChats[0].id);
-                Storage.setActiveChatId(dbChats[0].id);
+              } else {
+                // Default to showing the homepage
+                setActiveChatId(null);
+                Storage.setActiveChatId(null);
               }
             }
           }
@@ -179,40 +181,13 @@ export default function Home() {
   }, [activeChat?.messages, isGenerating]);
 
   // 3. Conversation Management
-  const handleNewChat = async () => {
+  const handleNewChat = () => {
     if (isGenerating) intelligence.abort();
-    const newChat: Chat = {
-      id: 'chat_' + Date.now(),
-      title: 'New chat',
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      pinned: false,
-      messages: []
-    };
-
-    try {
-      const res = await fetch('/api/chats', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newChat),
-      });
-      if (res.ok) {
-        const updated = [newChat, ...chats];
-        setChats(updated);
-        setActiveChatId(newChat.id);
-        Storage.setActiveChatId(newChat.id);
-        setInput('');
-      } else {
-        if (res.status === 401) {
-          setUser(null);
-          router.push('/login');
-        } else {
-          showToast('Failed to create new chat', 'error');
-        }
-      }
-    } catch (err) {
-      console.error(err);
-      showToast('Error creating new chat', 'error');
+    setActiveChatId(null);
+    Storage.setActiveChatId(null);
+    setInput('');
+    if (window.innerWidth < 1024) {
+      setIsSidebarOpen(false);
     }
   };
 
@@ -513,75 +488,54 @@ export default function Home() {
 
       {/* 2. Main Chat Viewport */}
       <main className="flex-1 flex flex-col h-full min-w-0 bg-white dark:bg-zinc-950 relative transition-colors">
-        <ChatHeader
-          title={activeChat?.title || 'Project Access'}
-          isSidebarOpen={isSidebarOpen}
-          onToggleSidebar={() => setIsSidebarOpen(prev => !prev)}
-          onClear={() => setIsClearOpen(true)}
-        />
+        {(!activeChat || activeChat.messages.length === 0) ? (
+          /* Figma-inspired AI Chatbot Homepage Hero View */
+          <div className="flex-1 flex flex-col h-full overflow-y-auto">
+            <HeroHomepage
+              onSendMessage={(q) => handleSendMessage(q)}
+              isGenerating={isGenerating}
+              onStop={handleStopGeneration}
+              user={user}
+              isSidebarOpen={isSidebarOpen}
+              onOpenSidebar={() => setIsSidebarOpen(true)}
+            />
+          </div>
+        ) : (
+          <>
+            <ChatHeader
+              title={activeChat?.title || 'Project Access'}
+              isSidebarOpen={isSidebarOpen}
+              onToggleSidebar={() => setIsSidebarOpen(prev => !prev)}
+              onClear={() => setIsClearOpen(true)}
+            />
 
-        {/* Messages Scroll Area */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 sm:p-6 select-text">
-          <div className="w-full">
-            {(!activeChat || activeChat.messages.length === 0) ? (
-              /* Minimal Starter Screen */
-              <div className="max-w-2xl mx-auto py-12 px-4 flex flex-col items-center justify-center text-center min-h-[50vh]">
-                <img
-                  src="/icon.jpeg"
-                  alt="Project Access"
-                  className="w-12 h-12 rounded-2xl object-cover mb-4 shadow-sm border border-zinc-200 dark:border-zinc-800"
-                />
-                <h1 className="text-xl sm:text-2xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-                  Project Access
-                </h1>
-                <p className="text-zinc-500 dark:text-zinc-400 text-xs sm:text-sm max-w-md mb-8">
-                  Indian Criminal Law intelligence and statutory assistant for BNS, BNSS, POCSO, and Special Acts.
-                </p>
-
-                <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2 text-left">
-                  {PROMPT_TEMPLATES.map(tpl => (
-                    <div
-                      key={tpl.id}
-                      onClick={() => setInput(tpl.prompt)}
-                      className="p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/40 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors cursor-pointer"
-                    >
-                      <div className="text-[10px] font-medium text-zinc-400 uppercase mb-1">
-                        {tpl.category}
-                      </div>
-                      <h4 className="font-medium text-zinc-800 dark:text-zinc-200 text-xs mb-0.5">
-                        {tpl.title}
-                      </h4>
-                      <p className="text-[11px] text-zinc-500 line-clamp-2">
-                        {tpl.prompt}
-                      </p>
-                    </div>
+            {/* Messages Scroll Area */}
+            <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 sm:p-6 select-text">
+              <div className="w-full">
+                <div className="max-w-3xl mx-auto space-y-6 pb-4">
+                  {activeChat.messages.map((msg, index) => (
+                    <MessageItem
+                      key={msg.id}
+                      message={msg}
+                      isStreaming={isGenerating && index === activeChat.messages.length - 1}
+                      onCopy={handleCopy}
+                      onRegenerate={handleRegenerate}
+                    />
                   ))}
                 </div>
               </div>
-            ) : (
-              <div className="max-w-3xl mx-auto space-y-6 pb-4">
-                {activeChat.messages.map((msg, index) => (
-                  <MessageItem
-                    key={msg.id}
-                    message={msg}
-                    isStreaming={isGenerating && index === activeChat.messages.length - 1}
-                    onCopy={handleCopy}
-                    onRegenerate={handleRegenerate}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+            </div>
 
-        {/* Input Bar */}
-        <ChatInput
-          input={input}
-          setInput={setInput}
-          onSend={() => handleSendMessage()}
-          isGenerating={isGenerating}
-          onStop={handleStopGeneration}
-        />
+            {/* Input Bar for Active Chat */}
+            <ChatInput
+              input={input}
+              setInput={setInput}
+              onSend={() => handleSendMessage()}
+              isGenerating={isGenerating}
+              onStop={handleStopGeneration}
+            />
+          </>
+        )}
       </main>
 
       {/* 3. Clear Modal */}
