@@ -37,13 +37,13 @@ The system pairs a **Next.js 16** frontend (chat UI, auth, per-user chat history
       └─────────┘                          └─────────┘
 ```
 
-| Component | Tech | Location |
-|---|---|---|
-| Frontend | Next.js 16 (App Router), React 19, TypeScript, Tailwind v4 | `frontend/` |
-| Backend | FastAPI, LangChain, LangChain-Groq | `scripts/` |
-| Vector DB | Qdrant (cloud or local `qdrant_storage/`) · FastEmbed `BAAI/bge-small-en-v1.5` | `scripts/qdrant_*.py` |
-| Legal corpus | Curated statute text, one folder per act | `data/criminal/` |
-| User store | MongoDB Atlas (Mongoose) | `frontend/src/models/` |
+| Component    | Tech                                                                           | Location               |
+| ------------ | ------------------------------------------------------------------------------ | ---------------------- |
+| Frontend     | Next.js 16 (App Router), React 19, TypeScript, Tailwind v4                     | `frontend/`            |
+| Backend      | FastAPI, LangChain, LangChain-Groq                                             | `scripts/`             |
+| Vector DB    | Qdrant (cloud or local `qdrant_storage/`) · FastEmbed `BAAI/bge-small-en-v1.5` | `scripts/qdrant_*.py`  |
+| Legal corpus | Curated statute text, one folder per act                                       | `data/criminal/`       |
+| User store   | MongoDB Atlas (Mongoose)                                                       | `frontend/src/models/` |
 
 ### Backend entry point
 
@@ -84,23 +84,23 @@ Response:
 ### 1. Configure environment
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/IconicN1nja/Project-Access
 cd Project-Access
 cp .env.example .env      # fill in your keys
 ```
 
 An overview of the required variables (full reference in [`.env.example`](.env.example)):
 
-| Variable | Purpose |
-|---|---|
-| `QDRANT_URL` / `QDRANT_API_KEY` | Qdrant Cloud endpoint + key |
-| `GROQ_API_KEY` (+ `GROQ_API_KEY1..N`) | LLM keys; extras enable failover |
-| `GROQ_MODEL` | e.g. `openai/gpt-oss-120b` |
-| `MONGODB_URI` | MongoDB Atlas connection string |
-| `JWT_SECRET` | Token-signing secret |
-| `NEXT_PUBLIC_APP_URL` | Public frontend URL |
-| `SMTP_HOST` `SMTP_PORT` `SMTP_USER` `SMTP_PASSWORD` `SMTP_FROM` | Verification emails |
-| `RAG_API_URL` | Backend URL (defaults to `http://127.0.0.1:8000/api/query`) |
+| Variable                                                        | Purpose                                                     |
+| --------------------------------------------------------------- | ----------------------------------------------------------- |
+| `QDRANT_URL` / `QDRANT_API_KEY`                                 | Qdrant Cloud endpoint + key                                 |
+| `GROQ_API_KEY` (+ `GROQ_API_KEY1..N`)                           | LLM keys; extras enable failover                            |
+| `GROQ_MODEL`                                                    | e.g. `openai/gpt-oss-120b`                                  |
+| `MONGODB_URI`                                                   | MongoDB Atlas connection string                             |
+| `JWT_SECRET`                                                    | Token-signing secret                                        |
+| `NEXT_PUBLIC_APP_URL`                                           | Public frontend URL                                         |
+| `SMTP_HOST` `SMTP_PORT` `SMTP_USER` `SMTP_PASSWORD` `SMTP_FROM` | Verification emails                                         |
+| `RAG_API_URL`                                                   | Backend URL (defaults to `http://127.0.0.1:8000/api/query`) |
 
 ### 2. Start the backend
 
@@ -183,7 +183,7 @@ Project-Access/
 
 All external dependencies (MongoDB Atlas, Qdrant Cloud, Groq) are already hosted — only the two apps need deploying.
 
-### Option A — Vercel (frontend) + Render/Railway (backend) — *recommended*
+### Option A — Vercel (frontend) + Render/Railway (backend) — _recommended_
 
 **Backend (Render or Railway):**
 
@@ -204,6 +204,7 @@ vercel
 Set env vars in **Vercel → Settings → Environment Variables**: the Qdrant/Groq/Mongo/JWT/SMTP set above, plus `NEXT_PUBLIC_APP_URL` and `RAG_API_URL=https://your-backend.onrender.com/api/query`.
 
 Before shipping:
+
 - Add Vercel/Render egress IP ranges to **MongoDB Atlas → Network Access** (or `0.0.0.0/0` for prototyping).
 - Restrict `allow_origins` in `scripts/api.py` from `["*"]` to your frontend domain.
 
@@ -231,22 +232,6 @@ Set `RAG_API_URL=http://127.0.0.1:8000/api/query` so the frontend uses loopback.
 - Replace the default `JWT_SECRET` with a long random value.
 - Use a dedicated MongoDB Atlas app user rather than one shared with other tooling.
 - Restrict CORS in production.
-
----
-
-## Roadmap
-
-- [ ] Automated tests (Jest + RTL frontend, pytest backend)
-- [ ] Rate limiting & abuse protection on `/api/query`
-- [ ] Streaming (SSE) responses from the backend
-- [ ] Expanded corpus (more Special Acts / state acts)
-- [ ] Admin dashboard & user roles
-
----
-
-## License
-
-Add your license here.
 
 ---
 
