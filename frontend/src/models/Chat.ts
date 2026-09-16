@@ -30,11 +30,7 @@ const ChatSchema = new Schema(
     userId: {
       type: Schema.Types.ObjectId,
       ref: 'User',
-      index: true,
-    },
-    user_id: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
+      required: true,
       index: true,
     },
     title: {

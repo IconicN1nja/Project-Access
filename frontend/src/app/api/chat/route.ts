@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
-    const { query, messages, model, deepSearch } = await req.json();
+    const { query } = await req.json();
 
     if (!query || typeof query !== 'string') {
       return NextResponse.json({ error: 'Query string is required' }, { status: 400 });
@@ -21,7 +21,6 @@ export async function POST(req: Request) {
 
       if (ragResponse.ok) {
         const data = await ragResponse.json();
-        console.log(data.answer);
         return NextResponse.json({
           answer: data.answer,
           classified_collection: data.classified_collection,

@@ -10,7 +10,7 @@ interface AuthScreenProps {
 
 export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
   const router = useRouter();
-  const [localMode, setLocalMode] = useState<"signin" | "signup" | "unverified">("signin");
+  const [localMode, setLocalMode] = useState<"signin" | "signup" | "unverified">(mode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,9 +24,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
   // For unverified screen state
   const [resendCooldown, setResendCooldown] = useState(0);
 
+  // Sync localMode with mode prop changes
   useEffect(() => {
-    setLocalMode(mode);
-  }, [mode]);
+    if (mode !== localMode) {
+      setLocalMode(mode);
+    }
+  }, [mode, localMode]);
 
   useEffect(() => {
     // Check if user is already logged in
@@ -111,10 +114,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
         if (data.success) {
           setSuccess(data.message);
           setLocalMode("unverified");
-          // If token logged to console in dev mode, alert developer
-          if (data.loggedToConsole) {
-            console.log("%c[Project Access Dev Note] Check server console for verification code!", "color: orange; font-weight: bold; font-size: 14px;");
-          }
         }
       }
     } catch (err: any) {
@@ -246,7 +245,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
               </div>
               <h2 className="text-lg font-semibold">Verify Your Email Address</h2>
               <p className="text-xs text-[var(--color-text-tertiary)] max-w-xs leading-relaxed">
-                We've sent a 6-digit verification code to <span className="font-medium text-[var(--color-text-primary)]">{email}</span>.
+                We&apos;ve sent a 6-digit verification code to <span className="font-medium text-[var(--color-text-primary)]">{email}</span>.
                 Please enter the code below to activate your account.
               </p>
 

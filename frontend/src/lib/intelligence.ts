@@ -55,7 +55,7 @@ export class IntelligenceEngine {
         }
       } catch (e: any) {
         if (e.name === 'AbortError') throw e;
-        console.warn('Backend request failed, using local fallback:', e);
+        // Backend request failed, fall back to local response
       }
 
       // Fallback local intelligence if backend is temporarily unreachable
@@ -82,9 +82,8 @@ export class IntelligenceEngine {
       if (onDone) onDone();
     } catch (err: any) {
       if (err.name === 'AbortError') {
-        console.log('Stream aborted');
+        // Stream was intentionally aborted
       } else {
-        console.error('Stream error:', err);
         if (onError) onError(err);
       }
     } finally {

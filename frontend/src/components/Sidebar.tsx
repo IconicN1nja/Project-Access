@@ -9,8 +9,6 @@ import {
   Pin,
   Edit2,
   Trash2,
-  Sun,
-  Moon,
   PanelLeftClose,
 } from "lucide-react";
 
@@ -24,8 +22,6 @@ interface SidebarProps {
   onPinChat: (id: string, e: React.MouseEvent) => void;
   onRenameChat: (id: string, e: React.MouseEvent) => void;
   onDeleteChat: (id: string, e: React.MouseEvent) => void;
-  theme: string;
-  onToggleTheme: () => void;
   user: { id: string; email: string; name: string } | null;
   onLogout: () => void;
 }
@@ -40,8 +36,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onPinChat,
   onRenameChat,
   onDeleteChat,
-  theme,
-  onToggleTheme,
   user,
   onLogout,
 }) => {
@@ -68,18 +62,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const groups = {
     pinned: filteredChats.filter((c) => c.pinned),
     today: filteredChats.filter((c) => {
+      // eslint-disable-next-line react-hooks/purity
       const t = new Date(c.updatedAt || c.createdAt || Date.now()).getTime();
       return !c.pinned && t >= today;
     }),
     yesterday: filteredChats.filter((c) => {
+      // eslint-disable-next-line react-hooks/purity
       const t = new Date(c.updatedAt || c.createdAt || Date.now()).getTime();
       return !c.pinned && t >= yesterday && t < today;
     }),
     pastWeek: filteredChats.filter((c) => {
+      // eslint-disable-next-line react-hooks/purity
       const t = new Date(c.updatedAt || c.createdAt || Date.now()).getTime();
       return !c.pinned && t >= pastWeek && t < yesterday;
     }),
     older: filteredChats.filter((c) => {
+      // eslint-disable-next-line react-hooks/purity
       const t = new Date(c.updatedAt || c.createdAt || Date.now()).getTime();
       return !c.pinned && t < pastWeek;
     }),
@@ -266,27 +264,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           )}
 
-          {/* Minimal Footer with Dark/Light mode switch */}
-          <div className="p-3 border-t border-[var(--color-border-primary)] flex items-center justify-between shrink-0">
+          {/* Minimal Footer */}
+          <div className="p-3 border-t border-[var(--color-border-primary)] flex items-center justify-center shrink-0">
             <span className="text-[var(--text-xs)] text-[var(--color-text-tertiary)] font-medium">
               Project Access AI
             </span>
-            <button
-              onClick={onToggleTheme}
-              title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-              className="p-1.5 rounded-md text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)] transition-[background-color,color] duration-[var(--transition-fast)] flex items-center gap-1 text-xs">
-              {theme === "dark" ? (
-                <>
-                  <Sun className="w-3.5 h-3.5 text-amber-400" />
-                  <span className="text-[var(--text-xs)] text-[var(--color-text-quaternary)]">Light</span>
-                </>
-              ) : (
-                <>
-                  <Moon className="w-3.5 h-3.5 text-[var(--color-text-secondary)]" />
-                  <span className="text-[var(--text-xs)] text-[var(--color-text-tertiary)]">Dark</span>
-                </>
-              )}
-            </button>
           </div>
         </div>
       </aside>

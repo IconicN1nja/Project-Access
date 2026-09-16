@@ -21,7 +21,7 @@ export async function GET(req: Request, { params }: RouteParams) {
 
     await dbConnect();
 
-    const chat = await Chat.findOne({ id, $or: [{ userId }, { user_id: userId }] });
+    const chat = await Chat.findOne({ id, userId });
     if (!chat) {
       return NextResponse.json({ error: 'Chat not found' }, { status: 404 });
     }
@@ -51,7 +51,7 @@ export async function PUT(req: Request, { params }: RouteParams) {
 
     await dbConnect();
 
-    const chat = await Chat.findOne({ id, $or: [{ userId }, { user_id: userId }] });
+    const chat = await Chat.findOne({ id, userId });
     if (!chat) {
       return NextResponse.json({ error: 'Chat not found' }, { status: 404 });
     }
@@ -85,7 +85,7 @@ export async function DELETE(req: Request, { params }: RouteParams) {
 
     await dbConnect();
 
-    const result = await Chat.deleteOne({ id, $or: [{ userId }, { user_id: userId }] });
+    const result = await Chat.deleteOne({ id, userId });
 
     if (result.deletedCount === 0) {
       return NextResponse.json({ error: 'Chat not found or already deleted' }, { status: 404 });

@@ -15,7 +15,6 @@ import {
   Info,
   Clock,
   Bookmark,
-  Share2,
   PanelLeft,
 } from "lucide-react";
 import { PROMPT_TEMPLATES } from "@/lib/storage";
@@ -24,7 +23,6 @@ interface HeroHomepageProps {
   onSendMessage: (query: string) => void;
   isGenerating: boolean;
   onStop: () => void;
-  user: { id: string; email: string; name: string } | null;
   onOpenSidebar?: () => void;
   isSidebarOpen?: boolean;
 }
@@ -40,7 +38,6 @@ export const HeroHomepage: React.FC<HeroHomepageProps> = ({
   onSendMessage,
   isGenerating,
   onStop,
-  user,
   isSidebarOpen,
   onOpenSidebar,
 }) => {
@@ -187,8 +184,14 @@ export const HeroHomepage: React.FC<HeroHomepageProps> = ({
 
       {/* 2. Hero Center Section */}
       <main className="w-full max-w-3xl mx-auto my-auto flex flex-col items-center text-center z-10 py-6 sm:py-10">
-        {/* Minimal White Pillar Accent Graphic from Figma */}
-        <div className="w-2 sm:w-2.5 h-10 sm:h-12 bg-white rounded-full mb-6 sm:mb-8 shadow-[0_0_24px_rgba(255,255,255,0.7)] animate-pulse" />
+        {/* Project Access Logo */}
+        <div className="w-16 h-16 sm:w-20 sm:h-20 mb-6 sm:mb-8 rounded-2xl overflow-hidden border-2 border-emerald-500/30 shadow-[0_0_24px_rgba(52,211,153,0.3)]">
+          <img
+            src="/logo.jpeg"
+            alt="Project Access"
+            className="w-full h-full object-cover"
+          />
+        </div>
 
         {/* Hero Headlines: Serif italic elegance matching the Figma design */}
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif tracking-tight text-white leading-tight font-normal">

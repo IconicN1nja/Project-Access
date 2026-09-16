@@ -210,23 +210,8 @@ details[open] summary svg.chevron-icon {
   }
 }
 
-@keyframes toastOut {
-  from {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateY(var(--space-2));
-    opacity: 0;
-  }
-}
-
 .toast-enter {
   animation: toastIn var(--transition-fast) ease-out forwards;
-}
-
-.toast-exit {
-  animation: toastOut var(--transition-fast) ease-in forwards;
 }
 
 /* Hero Background Gradient Mesh from Figma Design */
