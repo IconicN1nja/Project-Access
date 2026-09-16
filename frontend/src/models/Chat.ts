@@ -1,4 +1,4 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema } from "mongoose";
 
 const SourceDocSchema = new Schema({
   title: { type: String, required: true },
@@ -12,7 +12,7 @@ const SourceDocSchema = new Schema({
 
 const MessageSchema = new Schema({
   id: { type: String, required: true },
-  role: { type: String, enum: ['user', 'assistant'], required: true },
+  role: { type: String, enum: ["user", "assistant"], required: true },
   content: { type: String, required: true },
   timestamp: { type: Number, required: true },
   thinking: { type: String },
@@ -29,13 +29,13 @@ const ChatSchema = new Schema(
     },
     userId: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
       index: true,
     },
     title: {
       type: String,
-      default: 'New chat',
+      default: "New chat",
     },
     pinned: {
       type: Boolean,
@@ -45,7 +45,7 @@ const ChatSchema = new Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-export default mongoose.models.Chat || mongoose.model('Chat', ChatSchema);
+export default mongoose.models.Chat || mongoose.model("Chat", ChatSchema);

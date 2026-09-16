@@ -33,6 +33,7 @@ npm run format:check
 ## Architecture
 
 ### Core Stack
+
 - **Framework**: Next.js 16 (App Router) with React 19
 - **Language**: TypeScript with strict mode
 - **Styling**: Tailwind CSS v4
@@ -41,7 +42,9 @@ npm run format:check
 - **Email**: Nodemailer for verification emails
 
 ### Backend Integration
+
 The app communicates with a Python FastAPI backend for RAG functionality:
+
 - **Backend URL**: Configured via `RAG_API_URL` or `NEXT_PUBLIC_RAG_API_URL` (defaults to `http://127.0.0.1:8000/api/query`)
 - **Flow**: Frontend sends queries → Backend processes via Qdrant vector search + LLM → Frontend streams response
 - **Fallback**: If backend is unreachable, `IntelligenceEngine` provides local fallback responses
@@ -85,18 +88,21 @@ src/
 **Database Connection**: MongoDB uses a cached connection pattern in `lib/db.ts` to prevent connection exhaustion during Next.js hot reloads. Always import and call `dbConnect()` before database operations in API routes.
 
 **Authentication Flow**:
+
 1. User registers → email verification token sent
 2. User verifies email via `/api/auth/verify?token=...`
 3. Login generates JWT (60-day expiry) stored in HTTP-only cookie
 4. Protected API routes use `getUserIdFromRequest()` to verify authentication
 
 **Chat System**:
+
 - Chats belong to authenticated users (referenced by `userId` or `user_id`)
 - Messages include optional `thinking` status and `sources` array for legal citations
 - Chat history stored in MongoDB, synced to sidebar on load
 - Each message has structured `SourceDoc` references with act titles, section numbers, and relevance scores
 
 **RAG Intelligence Flow**:
+
 1. User submits query via `ChatInput`
 2. `IntelligenceEngine.streamResponse()` sends to `/api/chat`
 3. API route forwards to FastAPI backend (`RAG_API_URL`)
@@ -138,21 +144,25 @@ RAG_API_URL=http://127.0.0.1:8000/api/query
 ## Important Conventions
 
 ### Path Aliases
+
 Use `@/*` for imports from `src/`: `import { Message } from '@/types'`
 
 ### API Routes
+
 - All API routes return `NextResponse.json()`
 - Authentication routes handle JWT token creation/validation
 - Chat routes require authentication via `getUserIdFromRequest()`
 - Backend communication includes 90s timeout for LLM inference
 
 ### Component Patterns
+
 - Components use Framer Motion for animations
 - Lucide React for consistent iconography
 - Dark mode is default (set in root layout)
 - React Markdown with `remark-gfm` for rendering assistant responses
 
 ### Model Definitions
+
 Mongoose models use the pattern: `mongoose.models.ModelName || mongoose.model('ModelName', Schema)` to prevent recompilation during hot reloads.
 
 ## Testing & Debugging
@@ -160,6 +170,7 @@ Mongoose models use the pattern: `mongoose.models.ModelName || mongoose.model('M
 No test framework is currently configured. When adding tests, use the standard Next.js testing setup (Jest + React Testing Library).
 
 **Common Debug Points**:
+
 - Backend connectivity: Check `RAG_API_URL` and ensure FastAPI is running on port 8000
 - MongoDB connection: Verify `MONGODB_URI` and check console for connection errors
 - Email verification: Check SMTP credentials if verification emails fail
@@ -168,6 +179,7 @@ No test framework is currently configured. When adding tests, use the standard N
 ## Domain-Specific Context
 
 **Legal Domain**: This application handles Indian Criminal Law queries specifically:
+
 - **BNS** (Bharatiya Nyaya Sanhita) — substantive criminal law
 - **BNSS** (Bharatiya Nagarik Suraksha Sanhita) — procedural law
 - **BSA** (Bharatiya Sakshya Adhiniyam) — evidence law

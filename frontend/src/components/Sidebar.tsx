@@ -160,8 +160,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               onClick={onNewChat}
               title="Return to homepage"
-              className="flex items-center gap-2.5 text-left group"
-            >
+              className="flex items-center gap-2.5 text-left group">
               <img
                 src="/icon.jpeg"
                 alt="Project Access Logo"
@@ -189,7 +188,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <Plus className="w-3.5 h-3.5 text-emerald-400" />
                 <span>New chat</span>
               </div>
-              <kbd className="text-[var(--text-xs)] text-[var(--color-text-quaternary)] font-mono">⌘K</kbd>
+              <kbd className="text-[var(--text-xs)] text-[var(--color-text-quaternary)] font-mono">
+                ⌘K
+              </kbd>
             </button>
 
             <div className="relative">
@@ -231,7 +232,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </div>
                   <div className="flex flex-col min-w-0">
                     <span className="text-[var(--text-xs)] font-semibold truncate text-[var(--color-text-primary)]">
-                      {user.name || 'User'}
+                      {user.name || "User"}
                     </span>
                     <span className="text-[10px] truncate text-[var(--color-text-tertiary)]">
                       {user.email}
@@ -241,8 +242,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <button
                   onClick={onLogout}
                   title="Log Out"
-                  className="p-1 rounded-md text-[var(--color-text-quaternary)] hover:text-[var(--color-error)] hover:bg-[var(--color-surface-hover)] transition-[background-color,color] duration-[var(--transition-fast)] flex shrink-0"
-                >
+                  className="p-1 rounded-md text-[var(--color-text-quaternary)] hover:text-[var(--color-error)] hover:bg-[var(--color-surface-hover)] transition-[background-color,color] duration-[var(--transition-fast)] flex shrink-0">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="13"
@@ -253,8 +253,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     strokeWidth="2.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="lucide lucide-log-out"
-                  >
+                    className="lucide lucide-log-out">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                     <polyline points="16 17 21 12 16 7" />
                     <line x1="21" x2="9" y1="12" y2="12" />

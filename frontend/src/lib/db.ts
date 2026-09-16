@@ -1,9 +1,9 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI as string;
 
 if (!MONGODB_URI) {
-  throw new Error('MONGODB_URI is not defined');
+  throw new Error("MONGODB_URI is not defined");
 }
 
 let cached = (global as any).mongoose;
@@ -28,7 +28,7 @@ async function dbConnect() {
     cached.promise = mongoose
       .connect(MONGODB_URI, opts)
       .then((mongooseInstance) => {
-        console.log('Successfully connected to MongoDB');
+        console.log("Successfully connected to MongoDB");
         return mongooseInstance;
       });
   }
@@ -37,7 +37,7 @@ async function dbConnect() {
     cached.conn = await cached.promise;
   } catch (e) {
     cached.promise = null;
-    console.error('Failed to connect to MongoDB:', e);
+    console.error("Failed to connect to MongoDB:", e);
     throw e;
   }
 

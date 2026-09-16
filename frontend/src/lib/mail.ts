@@ -1,20 +1,23 @@
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 
 const SMTP_HOST = process.env.SMTP_HOST;
 const SMTP_PORT = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 587;
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASSWORD = process.env.SMTP_PASSWORD;
-const SMTP_FROM = process.env.SMTP_FROM || '"Project Access" <no-reply@projectaccess.com>';
+const SMTP_FROM =
+  process.env.SMTP_FROM || '"Project Access" <no-reply@projectaccess.com>';
 
 export async function sendOtpEmail(email: string, otp: string) {
-  console.log('=====================================================');
+  console.log("=====================================================");
   console.log(`[MAIL SYSTEM] OTP verification code generated for ${email}:`);
   console.log(`CODE: ${otp}`);
-  console.log('=====================================================');
+  console.log("=====================================================");
 
   // If credentials are not set, we skip SMTP and rely on the console output
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASSWORD) {
-    console.log('[MAIL SYSTEM] SMTP not configured. Logged OTP to console for testing.');
+    console.log(
+      "[MAIL SYSTEM] SMTP not configured. Logged OTP to console for testing.",
+    );
     return { success: true, loggedToConsole: true };
   }
 
@@ -32,7 +35,7 @@ export async function sendOtpEmail(email: string, otp: string) {
     const mailOptions = {
       from: SMTP_FROM,
       to: email,
-      subject: 'Verify your Project Access Account — Verification Code',
+      subject: "Verify your Project Access Account — Verification Code",
       text: `Welcome to Project Access. Your verification code is: ${otp}. This code is valid for 10 minutes.`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e4e4e7; border-radius: 8px;">
@@ -57,10 +60,15 @@ export async function sendOtpEmail(email: string, otp: string) {
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log(`[MAIL SYSTEM] Verification OTP email sent to ${email}. Message ID: ${info.messageId}`);
+    console.log(
+      `[MAIL SYSTEM] Verification OTP email sent to ${email}. Message ID: ${info.messageId}`,
+    );
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error('[MAIL SYSTEM] Failed to send verification OTP email through SMTP:', error);
+    console.error(
+      "[MAIL SYSTEM] Failed to send verification OTP email through SMTP:",
+      error,
+    );
     return { success: false, error };
   }
 }

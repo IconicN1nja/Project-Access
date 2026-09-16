@@ -1,4 +1,4 @@
-import { Message, SourceDoc } from '@/types';
+import { Message, SourceDoc } from "@/types";
 
 export class IntelligenceEngine {
   private abortController: AbortController | null = null;
@@ -17,7 +17,7 @@ export class IntelligenceEngine {
     onSources,
     onChunk,
     onDone,
-    onError
+    onError,
   }: {
     query: string;
     messages: Message[];
@@ -32,18 +32,18 @@ export class IntelligenceEngine {
 
     try {
       if (onThinking) {
-        onThinking('Searching legal vector index and generating response...');
+        onThinking("Searching legal vector index and generating response...");
       }
 
-      let finalAnswer = '';
+      let finalAnswer = "";
       let finalSources: SourceDoc[] = [];
 
       try {
-        const res = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ query, messages }),
-          signal
+          signal,
         });
 
         if (res.ok) {
@@ -54,7 +54,7 @@ export class IntelligenceEngine {
           }
         }
       } catch (e: any) {
-        if (e.name === 'AbortError') throw e;
+        if (e.name === "AbortError") throw e;
         // Backend request failed, fall back to local response
       }
 
@@ -74,14 +74,14 @@ export class IntelligenceEngine {
       const chunkSize = 16; // Process 8 words and spaces at a time
       for (let i = 0; i < words.length; i += chunkSize) {
         if (signal.aborted) return;
-        const chunk = words.slice(i, i + chunkSize).join('');
+        const chunk = words.slice(i, i + chunkSize).join("");
         if (onChunk) onChunk(chunk);
-        await new Promise(r => setTimeout(r, 1));
+        await new Promise((r) => setTimeout(r, 1));
       }
 
       if (onDone) onDone();
     } catch (err: any) {
-      if (err.name === 'AbortError') {
+      if (err.name === "AbortError") {
         // Stream was intentionally aborted
       } else {
         if (onError) onError(err);
@@ -91,10 +91,23 @@ export class IntelligenceEngine {
     }
   }
 
-  private generateLocalResponse(query: string): { answer: string; sources: SourceDoc[] } {
+  private generateLocalResponse(query: string): {
+    answer: string;
+    sources: SourceDoc[];
+  } {
     const q = query.toLowerCase();
 
-    if (q.includes('bail') || q.includes('bnss') || q.includes('bns') || q.includes('law') || q.includes('arrest') || q.includes('pocso') || q.includes('ndps') || q.includes('arms') || q.includes('uapa')) {
+    if (
+      q.includes("bail") ||
+      q.includes("bnss") ||
+      q.includes("bns") ||
+      q.includes("law") ||
+      q.includes("arrest") ||
+      q.includes("pocso") ||
+      q.includes("ndps") ||
+      q.includes("arms") ||
+      q.includes("uapa")
+    ) {
       return {
         answer: `### Legal Advisory & Statutory Assessment
 
@@ -111,20 +124,22 @@ Regarding your query: **"${query}"**
 3. Consult a qualified advocate for jurisdiction-specific representation before the competent court.`,
         sources: [
           {
-            title: 'Bharatiya Nyaya Sanhita (BNS) Code',
-            act_title: 'Bharatiya Nyaya Sanhita',
-            section_number: 'Sec 103 / Sec 303',
-            snippet: 'Statutory offences, definitions, and classification thresholds.',
-            score: 0.97
+            title: "Bharatiya Nyaya Sanhita (BNS) Code",
+            act_title: "Bharatiya Nyaya Sanhita",
+            section_number: "Sec 103 / Sec 303",
+            snippet:
+              "Statutory offences, definitions, and classification thresholds.",
+            score: 0.97,
           },
           {
-            title: 'BNSS Procedural Standards',
-            act_title: 'Bharatiya Nagarik Suraksha Sanhita',
-            section_number: 'Sec 480 / 482',
-            snippet: 'Statutory guidelines on bail applications and investigation timelines.',
-            score: 0.94
-          }
-        ]
+            title: "BNSS Procedural Standards",
+            act_title: "Bharatiya Nagarik Suraksha Sanhita",
+            section_number: "Sec 480 / 482",
+            snippet:
+              "Statutory guidelines on bail applications and investigation timelines.",
+            score: 0.94,
+          },
+        ],
       };
     }
 
@@ -136,7 +151,7 @@ Regarding: **"${query}"**
 1. **Statutory Classification**: Evaluated under the relevant sections of Indian Criminal Law (BNS, BNSS, BSA).
 2. **Procedural Steps**: Review relevant documents and statutory limitation periods.
 3. **Legal Safeguards**: Consult with legal counsel regarding the competent jurisdictional court.`,
-      sources: []
+      sources: [],
     };
   }
 }

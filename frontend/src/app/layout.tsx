@@ -1,13 +1,14 @@
-import type { Metadata } from 'next';
-import './globals.css';
+import type { Metadata } from "next";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: 'Project Access — Legal Intelligence AI',
-  description: 'Indian Criminal Law intelligence and statutory assistant for BNS, BNSS, and Special Acts.',
+  title: "Project Access — Legal Intelligence AI",
+  description:
+    "Indian Criminal Law intelligence and statutory assistant for BNS, BNSS, and Special Acts.",
   icons: {
-    icon: '/icon.jpeg',
-    shortcut: '/icon.jpeg',
-    apple: '/icon.jpeg',
+    icon: "/icon.jpeg",
+    shortcut: "/icon.jpeg",
+    apple: "/icon.jpeg",
   },
 };
 

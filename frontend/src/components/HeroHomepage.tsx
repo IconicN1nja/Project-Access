@@ -53,7 +53,7 @@ export const HeroHomepage: React.FC<HeroHomepageProps> = ({
       textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${Math.min(
         textareaRef.current.scrollHeight,
-        140
+        140,
       )}px`;
     }
   }, [query]);
@@ -113,8 +113,7 @@ export const HeroHomepage: React.FC<HeroHomepageProps> = ({
             <button
               onClick={onOpenSidebar}
               title="Open conversations sidebar (⌘B)"
-              className="p-1.5 rounded-full bg-slate-900/60 hover:bg-slate-900 border border-slate-700/50 backdrop-blur-md text-slate-400 hover:text-slate-100 transition-colors flex items-center justify-center"
-            >
+              className="p-1.5 rounded-full bg-slate-900/60 hover:bg-slate-900 border border-slate-700/50 backdrop-blur-md text-slate-400 hover:text-slate-100 transition-colors flex items-center justify-center">
               <PanelLeft className="w-4 h-4" />
             </button>
           )}
@@ -150,34 +149,45 @@ export const HeroHomepage: React.FC<HeroHomepageProps> = ({
       {/* Right Floating Vertical Dock / Tool Palette (as seen in Figma) */}
       <aside
         aria-label="Quick Actions"
-        className="fixed right-3 sm:right-6 top-1/2 -translate-y-1/2 z-20 hidden md:flex flex-col gap-2.5 p-1.5 rounded-2xl bg-slate-900/60 border border-slate-700/40 backdrop-blur-xl shadow-xl shadow-black/20"
-      >
+        className="fixed right-3 sm:right-6 top-1/2 -translate-y-1/2 z-20 hidden md:flex flex-col gap-2.5 p-1.5 rounded-2xl bg-slate-900/60 border border-slate-700/40 backdrop-blur-xl shadow-xl shadow-black/20">
         <button
           title="Recent Queries / Timeline"
-          onClick={() => handleSubmit("Summarize key changes in Bharatiya Nyaya Sanhita (BNS) compared to IPC")}
-          className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:text-emerald-300 hover:bg-slate-800/80 transition-all group"
-        >
+          onClick={() =>
+            handleSubmit(
+              "Summarize key changes in Bharatiya Nyaya Sanhita (BNS) compared to IPC",
+            )
+          }
+          className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:text-emerald-300 hover:bg-slate-800/80 transition-all group">
           <Clock className="w-4 h-4 group-hover:scale-110 transition-transform" />
         </button>
         <button
           title="Saved Statutes"
-          onClick={() => handleSubmit("Provide a complete breakdown of bail provisions under BNSS 2023")}
-          className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:text-emerald-300 hover:bg-slate-800/80 transition-all group"
-        >
+          onClick={() =>
+            handleSubmit(
+              "Provide a complete breakdown of bail provisions under BNSS 2023",
+            )
+          }
+          className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:text-emerald-300 hover:bg-slate-800/80 transition-all group">
           <Bookmark className="w-4 h-4 group-hover:scale-110 transition-transform" />
         </button>
         <button
           title="Statutory Search Index"
-          onClick={() => handleSubmit("Explain Section 42 and 50 search and seizure mandates under NDPS Act")}
-          className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:text-emerald-300 hover:bg-slate-800/80 transition-all group"
-        >
+          onClick={() =>
+            handleSubmit(
+              "Explain Section 42 and 50 search and seizure mandates under NDPS Act",
+            )
+          }
+          className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:text-emerald-300 hover:bg-slate-800/80 transition-all group">
           <BookOpen className="w-4 h-4 group-hover:scale-110 transition-transform" />
         </button>
         <button
           title="Legal Info & Sources"
-          onClick={() => handleSubmit("What are the mandatory reporting requirements and penalties under POCSO Act?")}
-          className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:text-emerald-300 hover:bg-slate-800/80 transition-all group"
-        >
+          onClick={() =>
+            handleSubmit(
+              "What are the mandatory reporting requirements and penalties under POCSO Act?",
+            )
+          }
+          className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:text-emerald-300 hover:bg-slate-800/80 transition-all group">
           <Info className="w-4 h-4 group-hover:scale-110 transition-transform" />
         </button>
       </aside>
@@ -204,8 +214,9 @@ export const HeroHomepage: React.FC<HeroHomepageProps> = ({
 
         {/* Subtitle / Description */}
         <p className="mt-4 sm:mt-5 text-xs sm:text-sm text-slate-400 max-w-xl font-sans leading-relaxed tracking-normal">
-          Empowering citizens and legal practitioners with verified statutory guidance,
-          procedural timelines, and grounded legal references across Indian Criminal Law.
+          Empowering citizens and legal practitioners with verified statutory
+          guidance, procedural timelines, and grounded legal references across
+          Indian Criminal Law.
         </p>
 
         {/* 3. Floating Glass Input Card */}
@@ -230,8 +241,7 @@ export const HeroHomepage: React.FC<HeroHomepageProps> = ({
                   <button
                     type="button"
                     onClick={() => setIsModeDropdownOpen((prev) => !prev)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/80 hover:bg-slate-800 text-slate-300 text-xs font-medium border border-slate-700/60 transition-colors"
-                  >
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/80 hover:bg-slate-800 text-slate-300 text-xs font-medium border border-slate-700/60 transition-colors">
                     <activeModeObj.icon className="w-3.5 h-3.5 text-emerald-400" />
                     <span className="truncate max-w-[140px] sm:max-w-[180px]">
                       {activeModeObj.label}
@@ -260,8 +270,7 @@ export const HeroHomepage: React.FC<HeroHomepageProps> = ({
                               isSelected
                                 ? "bg-emerald-500/15 text-emerald-300 font-medium"
                                 : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-100"
-                            }`}
-                          >
+                            }`}>
                             <Icon className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                             <span className="truncate">{mode.label}</span>
                           </button>
@@ -276,11 +285,12 @@ export const HeroHomepage: React.FC<HeroHomepageProps> = ({
                   type="button"
                   onClick={() =>
                     setQuery((prev) =>
-                      prev ? prev : "What are the legal provisions and penalties for "
+                      prev
+                        ? prev
+                        : "What are the legal provisions and penalties for ",
                     )
                   }
-                  className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-slate-200 text-xs border border-slate-700/40 transition-colors"
-                >
+                  className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-slate-200 text-xs border border-slate-700/40 transition-colors">
                   <SlidersHorizontal className="w-3 h-3" />
                   <span>Provisions Lookup</span>
                 </button>
@@ -296,10 +306,9 @@ export const HeroHomepage: React.FC<HeroHomepageProps> = ({
                   isGenerating
                     ? "bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-900/30"
                     : query.trim()
-                    ? "bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/25 hover:scale-105 active:scale-95 cursor-pointer"
-                    : "bg-emerald-500/20 text-emerald-500/40 cursor-not-allowed border border-emerald-500/20"
-                }`}
-              >
+                      ? "bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/25 hover:scale-105 active:scale-95 cursor-pointer"
+                      : "bg-emerald-500/20 text-emerald-500/40 cursor-not-allowed border border-emerald-500/20"
+                }`}>
                 {isGenerating ? (
                   <Square className="w-3.5 h-3.5 fill-current" />
                 ) : (
@@ -316,8 +325,7 @@ export const HeroHomepage: React.FC<HeroHomepageProps> = ({
             <button
               key={tpl.id}
               onClick={() => handleSubmit(tpl.prompt)}
-              className="text-[11px] sm:text-xs text-slate-300 hover:text-emerald-300 bg-slate-900/50 hover:bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-800 hover:border-slate-700 transition-all flex items-center gap-1.5 shadow-sm"
-            >
+              className="text-[11px] sm:text-xs text-slate-300 hover:text-emerald-300 bg-slate-900/50 hover:bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-800 hover:border-slate-700 transition-all flex items-center gap-1.5 shadow-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/80" />
               <span>{tpl.title}</span>
             </button>
@@ -328,7 +336,8 @@ export const HeroHomepage: React.FC<HeroHomepageProps> = ({
       {/* 4. Footer Disclaimer */}
       <footer className="w-full text-center z-10 pt-4 pb-2">
         <p className="text-[11px] text-slate-400/80 tracking-wide font-sans">
-          Project Access provides statutory references for informational purposes. Always verify with statutory texts.
+          Project Access provides statutory references for informational
+          purposes. Always verify with statutory texts.
         </p>
       </footer>
     </div>

@@ -69,9 +69,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 text-[var(--text-xs)] text-[var(--color-text-quaternary)] mb-1">
-          <span className="font-medium text-emerald-400">
-            Project Access
-          </span>
+          <span className="font-medium text-emerald-400">Project Access</span>
           <span>•</span>
           <span>{timeStr}</span>
         </div>

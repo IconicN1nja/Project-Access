@@ -2,7 +2,16 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, User as UserIcon, ArrowRight, ShieldAlert, CheckCircle2, RotateCcw, AlertTriangle } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  User as UserIcon,
+  ArrowRight,
+  ShieldAlert,
+  CheckCircle2,
+  RotateCcw,
+  AlertTriangle,
+} from "lucide-react";
 
 interface AuthScreenProps {
   mode: "signin" | "signup";
@@ -10,7 +19,9 @@ interface AuthScreenProps {
 
 export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
   const router = useRouter();
-  const [localMode, setLocalMode] = useState<"signin" | "signup" | "unverified">(mode);
+  const [localMode, setLocalMode] = useState<
+    "signin" | "signup" | "unverified"
+  >(mode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -214,7 +225,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
             Project Access
           </h1>
           <p className="text-xs text-[var(--color-text-tertiary)] mt-1.5 max-w-xs">
-            Indian Criminal Law statutory assistant and legal vector index RAG platform.
+            Indian Criminal Law statutory assistant and legal vector index RAG
+            platform.
           </p>
         </div>
 
@@ -243,16 +255,23 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
               <div className="p-3 rounded-full bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)]">
                 <AlertTriangle className="w-8 h-8" />
               </div>
-              <h2 className="text-lg font-semibold">Verify Your Email Address</h2>
+              <h2 className="text-lg font-semibold">
+                Verify Your Email Address
+              </h2>
               <p className="text-xs text-[var(--color-text-tertiary)] max-w-xs leading-relaxed">
-                We&apos;ve sent a 6-digit verification code to <span className="font-medium text-[var(--color-text-primary)]">{email}</span>.
-                Please enter the code below to activate your account.
+                We&apos;ve sent a 6-digit verification code to{" "}
+                <span className="font-medium text-[var(--color-text-primary)]">
+                  {email}
+                </span>
+                . Please enter the code below to activate your account.
               </p>
 
               {/* OTP Input Form */}
               <form onSubmit={handleVerifyOtp} className="w-full space-y-4">
                 <div className="space-y-1.5 text-left">
-                  <label htmlFor="otp" className="text-[var(--text-xs)] font-semibold uppercase tracking-wider text-[var(--color-text-quaternary)]">
+                  <label
+                    htmlFor="otp"
+                    className="text-[var(--text-xs)] font-semibold uppercase tracking-wider text-[var(--color-text-quaternary)]">
                     Verification Code (OTP)
                   </label>
                   <input
@@ -270,15 +289,17 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
 
                 {/* Dev warning note */}
                 <div className="w-full p-2.5 rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-surface-secondary)] text-[var(--text-xs)] text-[var(--color-text-quaternary)] text-left font-mono">
-                  <span className="font-semibold text-[var(--color-warning)] uppercase">Dev Environment:</span> Check terminal logs for verification code.
+                  <span className="font-semibold text-[var(--color-warning)] uppercase">
+                    Dev Environment:
+                  </span>{" "}
+                  Check terminal logs for verification code.
                 </div>
 
                 <div className="w-full pt-2 space-y-3">
                   <button
                     type="submit"
                     disabled={isLoading || otp.length !== 6}
-                    className="w-full py-2.5 px-4 rounded-lg bg-emerald-500 text-slate-950 font-medium text-xs shadow-[0_4px_14px_rgba(52,211,153,0.3)] hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all cursor-pointer"
-                  >
+                    className="w-full py-2.5 px-4 rounded-lg bg-emerald-500 text-slate-950 font-medium text-xs shadow-[0_4px_14px_rgba(52,211,153,0.3)] hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all cursor-pointer">
                     {isLoading ? (
                       <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                     ) : (
@@ -290,10 +311,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
                     type="button"
                     onClick={handleResendVerification}
                     disabled={isLoading || resendCooldown > 0}
-                    className="w-full py-2 px-4 rounded-lg border border-[var(--color-border-primary)] hover:bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] font-medium text-xs disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors"
-                  >
+                    className="w-full py-2 px-4 rounded-lg border border-[var(--color-border-primary)] hover:bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)] font-medium text-xs disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors">
                     <RotateCcw className="w-3.5 h-3.5" />
-                    {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend Verification Code"}
+                    {resendCooldown > 0
+                      ? `Resend in ${resendCooldown}s`
+                      : "Resend Verification Code"}
                   </button>
 
                   <button
@@ -303,8 +325,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
                       setSuccess(null);
                       router.push("/login");
                     }}
-                    className="text-xs text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors"
-                  >
+                    className="text-xs text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors">
                     Back to Sign In
                   </button>
                 </div>
@@ -318,7 +339,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
 
               {localMode === "signup" && (
                 <div className="space-y-1.5">
-                  <label htmlFor="name" className="text-xs font-medium text-[var(--color-text-tertiary)]">
+                  <label
+                    htmlFor="name"
+                    className="text-xs font-medium text-[var(--color-text-tertiary)]">
                     Full Name
                   </label>
                   <div className="relative">
@@ -336,7 +359,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
               )}
 
               <div className="space-y-1.5">
-                <label htmlFor="email" className="text-xs font-medium text-[var(--color-text-tertiary)]">
+                <label
+                  htmlFor="email"
+                  className="text-xs font-medium text-[var(--color-text-tertiary)]">
                   Email Address
                 </label>
                 <div className="relative">
@@ -353,7 +378,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
               </div>
 
               <div className="space-y-1.5">
-                <label htmlFor="password" className="text-xs font-medium text-[var(--color-text-tertiary)]">
+                <label
+                  htmlFor="password"
+                  className="text-xs font-medium text-[var(--color-text-tertiary)]">
                   Password
                 </label>
                 <div className="relative">
@@ -371,7 +398,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
 
               {localMode === "signup" && (
                 <div className="space-y-1.5">
-                  <label htmlFor="confirmPassword" className="text-xs font-medium text-[var(--color-text-tertiary)]">
+                  <label
+                    htmlFor="confirmPassword"
+                    className="text-xs font-medium text-[var(--color-text-tertiary)]">
                     Confirm Password
                   </label>
                   <div className="relative">
@@ -391,13 +420,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-2.5 px-4 mt-6 rounded-lg bg-emerald-500 text-slate-950 font-medium text-xs shadow-[0_4px_14px_rgba(52,211,153,0.3)] hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98]"
-              >
+                className="w-full py-2.5 px-4 mt-6 rounded-lg bg-emerald-500 text-slate-950 font-medium text-xs shadow-[0_4px_14px_rgba(52,211,153,0.3)] hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98]">
                 {isLoading ? (
                   <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <>
-                    <span>{localMode === "signin" ? "Sign In" : "Sign Up"}</span>
+                    <span>
+                      {localMode === "signin" ? "Sign In" : "Sign Up"}
+                    </span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </>
                 )}
@@ -415,9 +445,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
                       router.push("/login");
                     }
                   }}
-                  className="text-xs text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors"
-                >
-                  {localMode === "signin" ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
+                  className="text-xs text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors">
+                  {localMode === "signin"
+                    ? "Don't have an account? Sign Up"
+                    : "Already have an account? Sign In"}
                 </button>
               </div>
             </form>

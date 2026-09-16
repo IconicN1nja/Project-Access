@@ -30,6 +30,7 @@ Created a complete design tokens file with:
 ### 3. Design System Utilities (`src/styles/design-system.ts`)
 
 Created reusable component style patterns:
+
 - Button variants (primary, secondary, ghost, icon)
 - Input field styles
 - Surface/card styles (primary, secondary, elevated)
@@ -44,39 +45,46 @@ Created reusable component style patterns:
 Updated all major components to use design tokens:
 
 #### ✅ **ChatHeader.tsx**
+
 - Header height uses `var(--header-height)`
 - All colors use semantic tokens
 - Transitions use token-based timing
 
 #### ✅ **ChatInput.tsx**
+
 - Background, borders, text colors use tokens
 - Transitions reference design system timing
 - Maintains all interactive states
 
 #### ✅ **Sidebar.tsx**
+
 - Complete refactor using design tokens
 - All colors, spacing, typography from tokens
 - Z-index from centralized scale
 - Dark mode handled automatically through tokens
 
 #### ✅ **MessageItem.tsx**
+
 - Text colors, surfaces, borders from tokens
 - Code blocks use token colors
 - Source citations use semantic colors
 - All hover states token-based
 
 #### ✅ **Modals.tsx**
+
 - Modal backdrop and content use tokens
 - Z-index from design system scale
 - Animations use token timing
 
 #### ✅ **AuthScreen.tsx**
+
 - Complete rewrite using design tokens
 - All colors, spacing, typography from tokens
 - Feedback states (error, success) use semantic tokens
 - Form inputs use consistent token-based styling
 
 #### ✅ **page.tsx (Main App)**
+
 - Loading states use token colors
 - Toast notifications use design system
 - All backgrounds and text colors from tokens
@@ -88,21 +96,25 @@ Updated all major components to use design tokens:
 ## Benefits of This Implementation
 
 ### Maintainability
+
 - **Single source of truth**: All design decisions in one file (`tokens.css`)
 - **Easy global changes**: Modify a token once, affects entire application
 - **Consistent naming**: Semantic names make code self-documenting
 
 ### Dark Mode
+
 - **Automatic switching**: Change one attribute (`data-theme="dark"`), entire app updates
 - **No duplicate code**: Dark mode is just token overrides
 - **Consistent across all components**: No missed dark mode implementations
 
 ### Scalability
+
 - **Easy to extend**: Add new tokens without touching components
 - **Theme variants**: Could easily add multiple themes (e.g., high contrast, legal-focused)
 - **Component reusability**: Design system utilities promote consistency
 
 ### Developer Experience
+
 - **Predictable**: Developers know where to find design values
 - **Type-safe**: Can be extended with TypeScript for even better DX
 - **Documentation**: Token names are self-documenting
@@ -190,6 +202,7 @@ import { buttonStyles, surfaceStyles } from '@/styles/design-system';
 ## Conclusion
 
 The application now has a professional, maintainable design system that:
+
 - ✅ Ensures visual consistency across all pages and modes
 - ✅ Makes future design changes trivial
 - ✅ Improves code readability and maintainability

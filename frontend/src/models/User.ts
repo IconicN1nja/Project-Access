@@ -1,10 +1,10 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema } from "mongoose";
 
 const UserSchema = new Schema(
   {
     email: {
       type: String,
-      required: [true, 'Please provide an email address.'],
+      required: [true, "Please provide an email address."],
       unique: true,
       lowercase: true,
       trim: true,
@@ -12,7 +12,7 @@ const UserSchema = new Schema(
     },
     password: {
       type: String,
-      required: [true, 'Please provide a password.'],
+      required: [true, "Please provide a password."],
     },
     name: {
       type: String,
@@ -31,8 +31,8 @@ const UserSchema = new Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Prevent compiling model multiple times during Next.js hot reloads
-export default mongoose.models.User || mongoose.model('User', UserSchema);
+export default mongoose.models.User || mongoose.model("User", UserSchema);

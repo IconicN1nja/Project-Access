@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/db';
-import User from '@/models/User';
-import bcrypt from 'bcryptjs';
-import { sendOtpEmail } from '@/lib/mail';
+import { NextResponse } from "next/server";
+import dbConnect from "@/lib/db";
+import User from "@/models/User";
+import bcrypt from "bcryptjs";
+import { sendOtpEmail } from "@/lib/mail";
 
 export async function POST(req: Request) {
   try {
@@ -10,15 +10,15 @@ export async function POST(req: Request) {
 
     if (!email || !password) {
       return NextResponse.json(
-        { error: 'Email and password are required' },
-        { status: 400 }
+        { error: "Email and password are required" },
+        { status: 400 },
       );
     }
 
     if (password.length < 6) {
       return NextResponse.json(
-        { error: 'Password must be at least 6 characters long' },
-        { status: 400 }
+        { error: "Password must be at least 6 characters long" },
+        { status: 400 },
       );
     }
 
@@ -34,8 +34,8 @@ export async function POST(req: Request) {
     if (existingUser) {
       if (existingUser.isVerified) {
         return NextResponse.json(
-          { error: 'An account with this email address already exists' },
-          { status: 400 }
+          { error: "An account with this email address already exists" },
+          { status: 400 },
         );
       }
 
@@ -52,7 +52,8 @@ export async function POST(req: Request) {
 
       return NextResponse.json({
         success: true,
-        message: 'Registration updated. A verification code has been sent to your email.',
+        message:
+          "Registration updated. A verification code has been sent to your email.",
         loggedToConsole: mailResult.loggedToConsole || false,
       });
     }
@@ -64,7 +65,7 @@ export async function POST(req: Request) {
     const newUser = new User({
       email,
       password: hashedPassword,
-      name: name || email.split('@')[0],
+      name: name || email.split("@")[0],
       isVerified: false,
       verificationToken: otp,
       verificationTokenExpires: tokenExpires,
@@ -76,14 +77,15 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      message: 'Account created. Please check your email for the verification code.',
+      message:
+        "Account created. Please check your email for the verification code.",
       loggedToConsole: mailResult.loggedToConsole || false,
     });
   } catch (error: any) {
-    console.error('[REGISTER API ERROR]', error);
+    console.error("[REGISTER API ERROR]", error);
     return NextResponse.json(
-      { error: error.message || 'Internal Server Error' },
-      { status: 500 }
+      { error: error.message || "Internal Server Error" },
+      { status: 500 },
     );
   }
 }
