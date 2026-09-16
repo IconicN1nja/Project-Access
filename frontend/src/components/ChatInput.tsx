@@ -39,9 +39,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className="p-3 sm:p-4 bg-white dark:bg-zinc-950">
+    <div className="p-3 sm:p-4 bg-transparent relative z-10">
       <div className="max-w-3xl mx-auto">
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60 p-2.5 focus-within:border-zinc-400 dark:focus-within:border-zinc-600 transition-colors shadow-sm flex items-end gap-2">
+        <div className="rounded-xl border border-[var(--color-border-primary)] bg-[var(--color-surface-primary)]/80 backdrop-blur-xl p-2.5 focus-within:border-emerald-500/50 focus-within:shadow-[0_0_0_3px_rgba(52,211,153,0.1)] transition-all duration-[var(--transition-base)] shadow-[var(--shadow-md)] flex items-end gap-2">
           {/* Textarea */}
           <textarea
             ref={textareaRef}
@@ -50,7 +50,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask a legal question or search statutes..."
-            className="flex-1 bg-transparent border-0 resize-none text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none max-h-44 px-1 py-1 leading-relaxed"
+            className="flex-1 bg-transparent border-0 resize-none text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-quaternary)] focus:outline-none max-h-44 px-1 py-1 leading-relaxed"
           />
 
           {/* Send / Stop Button */}
@@ -58,12 +58,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             onClick={isGenerating ? onStop : onSend}
             disabled={!isGenerating && !input.trim()}
             title={isGenerating ? 'Stop generation' : 'Send (Enter)'}
-            className={`p-2 rounded-lg transition-colors flex items-center justify-center flex-shrink-0 ${isGenerating
-              ? 'bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-900'
-              : input.trim()
-                ? 'bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 cursor-pointer'
-                : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed'
-              }`}
+            className={`p-2 rounded-lg transition-all duration-[var(--transition-base)] flex items-center justify-center flex-shrink-0 ${
+              isGenerating
+                ? 'bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-900/30'
+                : input.trim()
+                ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/25 hover:scale-105 active:scale-95 cursor-pointer'
+                : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-quaternary)] cursor-not-allowed opacity-50'
+            }`}
           >
             {isGenerating ? (
               <Square className="w-3.5 h-3.5 fill-current" />
@@ -73,7 +74,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           </button>
         </div>
 
-        <p className="text-center text-[11px] text-zinc-400 dark:text-zinc-500 mt-2">
+        <p className="text-center text-[var(--text-xs)] text-[var(--color-text-quaternary)] mt-2">
           Project Access provides statutory information. Always consult a legal
           professional for case filings.
         </p>

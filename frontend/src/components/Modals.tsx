@@ -16,17 +16,17 @@ export const ClearModal: React.FC<ClearModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 w-full max-w-xs rounded-xl p-5 relative shadow-xl text-center">
-        <h3 className="font-semibold text-sm text-zinc-900 dark:text-zinc-100 mb-1">Clear chat?</h3>
-        <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-4">
+    <div className="fixed inset-0 z-[var(--z-modal-backdrop)] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-slate-900/90 backdrop-blur-xl border border-[var(--color-border-primary)] w-full max-w-xs rounded-xl p-5 relative shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)] text-center">
+        <h3 className="font-semibold text-sm text-[var(--color-text-primary)] mb-1">Clear chat?</h3>
+        <p className="text-xs text-[var(--color-text-tertiary)] mb-4">
           This will delete all messages in this conversation.
         </p>
 
         <div className="flex items-center gap-2">
           <button
             onClick={onClose}
-            className="flex-1 py-1.5 rounded-md text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            className="flex-1 py-1.5 rounded-md text-xs font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] transition-[background-color] duration-[var(--transition-fast)] border border-[var(--color-border-primary)]"
           >
             Cancel
           </button>
@@ -35,7 +35,7 @@ export const ClearModal: React.FC<ClearModalProps> = ({
               onConfirm();
               onClose();
             }}
-            className="flex-1 py-1.5 rounded-md bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-medium text-xs transition-colors"
+            className="flex-1 py-1.5 rounded-md bg-rose-500 hover:bg-rose-600 text-white font-medium text-xs transition-[background-color] duration-[var(--transition-fast)] shadow-lg shadow-rose-900/30"
           >
             Clear
           </button>

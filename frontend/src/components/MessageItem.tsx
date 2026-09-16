@@ -42,13 +42,13 @@ export const MessageItem: React.FC<MessageItemProps> = ({
   if (isUser) {
     return (
       <div className="flex flex-col items-end gap-1">
-        <div className="relative group max-w-[85%] sm:max-w-[75%] rounded-2xl rounded-tr-sm px-4 py-2.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm leading-relaxed whitespace-pre-wrap">
+        <div className="relative group max-w-[85%] sm:max-w-[75%] rounded-2xl rounded-tr-sm px-4 py-2.5 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 text-[var(--color-text-primary)] text-sm leading-relaxed whitespace-pre-wrap backdrop-blur-sm">
           {message.content}
 
           <button
             title="Copy"
             onClick={() => onCopy(message.content)}
-            className="absolute bottom-1 -left-8 opacity-0 group-hover:opacity-100 transition-opacity p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            className="absolute bottom-1 -left-8 opacity-0 group-hover:opacity-100 transition-opacity p-1 text-[var(--color-text-quaternary)] hover:text-emerald-400 rounded bg-[var(--color-surface-primary)]/80 backdrop-blur-sm border border-[var(--color-border-primary)] shadow-[var(--shadow-sm)]">
             <Copy className="w-3 h-3" />
           </button>
         </div>
@@ -59,15 +59,17 @@ export const MessageItem: React.FC<MessageItemProps> = ({
   return (
     <div className="flex items-start gap-3 group">
       {/* Bot Icon */}
-      <img
-        src="/icon.jpeg"
-        alt="Project Access"
-        className="w-7 h-7 rounded-lg object-cover shrink-0 mt-1 border border-zinc-200 dark:border-zinc-800"
-      />
+      <div className="w-7 h-7 rounded-lg shrink-0 mt-1 border border-emerald-500/30 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 backdrop-blur-sm flex items-center justify-center">
+        <img
+          src="/icon.jpeg"
+          alt="Project Access"
+          className="w-5 h-5 rounded-md object-cover"
+        />
+      </div>
 
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 text-[11px] text-zinc-400 mb-1">
-          <span className="font-medium text-zinc-700 dark:text-zinc-300">
+        <div className="flex items-center gap-2 text-[var(--text-xs)] text-[var(--color-text-quaternary)] mb-1">
+          <span className="font-medium text-emerald-400">
             Project Access
           </span>
           <span>•</span>
@@ -76,22 +78,22 @@ export const MessageItem: React.FC<MessageItemProps> = ({
 
         {/* Reasoning / Thinking Accordion */}
         {message.thinking && (
-          <details className="mb-2 rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 text-xs">
-            <summary className="flex items-center justify-between px-3 py-1.5 cursor-pointer font-medium text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 select-none">
+          <details className="mb-2 rounded-md border border-[var(--color-border-primary)] bg-[var(--color-surface-primary)]/60 backdrop-blur-sm text-xs">
+            <summary className="flex items-center justify-between px-3 py-1.5 cursor-pointer font-medium text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] select-none">
               <div className="flex items-center gap-1.5">
                 <GitCommit className="w-3.5 h-3.5" />
                 <span>Reasoning</span>
               </div>
               <ChevronDown className="w-3 h-3 chevron-icon transition-transform" />
             </summary>
-            <div className="p-2.5 pt-1 text-zinc-500 border-t border-zinc-200 dark:border-zinc-800 font-mono text-[11px] leading-relaxed whitespace-pre-wrap">
+            <div className="p-2.5 pt-1 text-[var(--color-text-tertiary)] border-t border-[var(--color-border-primary)] font-mono text-[var(--text-xs)] leading-relaxed whitespace-pre-wrap">
               {message.thinking}
             </div>
           </details>
         )}
 
         {/* Markdown Content */}
-        <div className="prose-chat text-zinc-800 dark:text-zinc-200 py-1">
+        <div className="prose-chat text-[var(--color-text-secondary)] py-1">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
@@ -108,7 +110,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
                           onClick={() =>
                             handleCopyCode(codeString, codeIdx as any)
                           }
-                          className="btn-copy-code flex items-center gap-1 px-1.5 py-0.5 rounded text-xs text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors">
+                          className="btn-copy-code flex items-center gap-1 px-1.5 py-0.5 rounded text-xs text-[var(--color-text-quaternary)] hover:text-emerald-400 hover:bg-[var(--color-interactive-secondary-hover)] transition-colors">
                           {copiedCodeIndex === (codeIdx as any) ? (
                             <>
                               <Check className="w-3 h-3 text-emerald-400" />
@@ -143,21 +145,21 @@ export const MessageItem: React.FC<MessageItemProps> = ({
 
         {/* Source Citations */}
         {message.sources && message.sources.length > 0 && (
-          <div className="mt-3 pt-2 border-t border-zinc-200/60 dark:border-zinc-800/60">
-            <div className="text-[11px] font-medium text-zinc-400 mb-1.5">
+          <div className="mt-3 pt-2 border-t border-[var(--color-border-primary)]/60">
+            <div className="text-[var(--text-xs)] font-medium text-[var(--color-text-quaternary)] mb-1.5">
               Sources & Statutory Citations:
             </div>
             <div className="flex flex-wrap gap-1.5">
               {message.sources.map((src, i) => (
                 <div
                   key={i}
-                  className="px-2 py-1 rounded border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 text-[11px] flex items-center gap-1.5">
-                  <LinkIcon className="w-2.5 h-2.5 shrink-0" />
-                  <span className="font-medium text-zinc-800 dark:text-zinc-200">
+                  className="px-2 py-1 rounded border border-emerald-500/30 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 backdrop-blur-sm text-[var(--color-text-tertiary)] text-[var(--text-xs)] flex items-center gap-1.5 hover:from-emerald-500/20 hover:to-teal-500/20 transition-all">
+                  <LinkIcon className="w-2.5 h-2.5 shrink-0 text-emerald-400" />
+                  <span className="font-medium text-emerald-400">
                     {src.act_title || src.title}
                   </span>
                   {src.section_number && (
-                    <span className="text-zinc-400">
+                    <span className="text-[var(--color-text-quaternary)]">
                       ({src.section_number})
                     </span>
                   )}
@@ -168,18 +170,18 @@ export const MessageItem: React.FC<MessageItemProps> = ({
         )}
 
         {/* Minimal Action Toolbar */}
-        <div className="flex items-center gap-1 mt-2 text-zinc-400">
+        <div className="flex items-center gap-1 mt-2 text-[var(--color-text-quaternary)]">
           <button
             title="Copy message"
             onClick={() => onCopy(message.content)}
-            className="p-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-200 text-xs transition-colors">
+            className="p-1 rounded hover:bg-[var(--color-surface-hover)] hover:text-emerald-400 text-xs transition-colors">
             <Copy className="w-3.5 h-3.5" />
           </button>
           {onRegenerate && (
             <button
               title="Regenerate"
               onClick={() => onRegenerate(message.id)}
-              className="p-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-200 text-xs transition-colors">
+              className="p-1 rounded hover:bg-[var(--color-surface-hover)] hover:text-emerald-400 text-xs transition-colors">
               <RotateCw className="w-3.5 h-3.5" />
             </button>
           )}

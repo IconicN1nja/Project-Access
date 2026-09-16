@@ -447,10 +447,10 @@ export default function Home() {
 
   if (isAuthLoading) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors">
+      <div className="flex h-screen w-screen items-center justify-center bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] transition-colors">
         <div className="flex flex-col items-center space-y-4">
-          <div className="w-10 h-10 border-3 border-zinc-900 border-t-transparent dark:border-white dark:border-t-transparent rounded-full animate-spin" />
-          <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Verifying session...</span>
+          <div className="w-10 h-10 border-3 border-[var(--color-interactive-primary)] border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs text-[var(--color-text-tertiary)] font-medium">Verifying session...</span>
         </div>
       </div>
     );
@@ -458,17 +458,17 @@ export default function Home() {
 
   if (!user) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors">
+      <div className="flex h-screen w-screen items-center justify-center bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] transition-colors">
         <div className="flex flex-col items-center space-y-4">
-          <div className="w-10 h-10 border-3 border-zinc-900 border-t-transparent dark:border-white dark:border-t-transparent rounded-full animate-spin" />
-          <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Redirecting to login...</span>
+          <div className="w-10 h-10 border-3 border-[var(--color-interactive-primary)] border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs text-[var(--color-text-tertiary)] font-medium">Redirecting to login...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 transition-colors">
+    <div className="flex h-screen w-screen overflow-hidden bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] transition-colors">
       {/* 1. Sidebar with collapsible desktop/mobile toggle */}
       <Sidebar
         chats={chats}
@@ -487,7 +487,7 @@ export default function Home() {
       />
 
       {/* 2. Main Chat Viewport */}
-      <main className="flex-1 flex flex-col h-full min-w-0 bg-white dark:bg-zinc-950 relative transition-colors">
+      <main className="flex-1 flex flex-col h-full min-w-0 bg-[var(--color-bg-primary)] chat-bg-mesh relative transition-colors">
         {(!activeChat || activeChat.messages.length === 0) ? (
           /* Figma-inspired AI Chatbot Homepage Hero View */
           <div className="flex-1 flex flex-col h-full overflow-y-auto">
@@ -510,7 +510,7 @@ export default function Home() {
             />
 
             {/* Messages Scroll Area */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 sm:p-6 select-text">
+            <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 sm:p-6 select-text relative z-10">
               <div className="w-full">
                 <div className="max-w-3xl mx-auto space-y-6 pb-4">
                   {activeChat.messages.map((msg, index) => (
@@ -547,8 +547,9 @@ export default function Home() {
 
       {/* Toast Notification */}
       {toast && (
-        <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-1.5 pointer-events-none">
-          <div className="toast-enter flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-md border border-zinc-700/40 dark:border-zinc-300/40">
+        <div className="fixed bottom-4 right-4 z-[var(--z-tooltip)] flex flex-col gap-1.5 pointer-events-none">
+          <div className="toast-enter flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-slate-900/90 backdrop-blur-xl text-emerald-400 shadow-[0_4px_14px_rgba(0,0,0,0.5)] border border-emerald-500/30">
+            {toast.type === 'error' && <span className="text-rose-400">⚠</span>}
             <span>{toast.message}</span>
           </div>
         </div>
