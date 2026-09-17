@@ -81,10 +81,11 @@ export async function POST(req: Request) {
         "Account created. Please check your email for the verification code.",
       loggedToConsole: mailResult.loggedToConsole || false,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Internal Server Error";
     console.error("[REGISTER API ERROR]", error);
     return NextResponse.json(
-      { error: error.message || "Internal Server Error" },
+      { error: message },
       { status: 500 },
     );
   }

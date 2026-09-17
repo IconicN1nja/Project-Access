@@ -30,21 +30,25 @@ export async function POST(req: Request) {
         return NextResponse.json({
           answer: data.answer,
           classified_collection: data.classified_collection,
-          sources: (data.retrieved_docs || []).map((doc: any) => ({
-            title:
-              doc.section_title ||
-              doc.act_title ||
-              doc.source_label ||
-              "Legal Section",
-            act_title: doc.act_title,
-            section_number: doc.section_number,
-            snippet: doc.text || doc.snippet || "",
-            score: doc.score || 0.95,
-          })),
+          sources: (data.retrieved_docs || []).map((doc: unknown) => {
+            const d = doc as Record<string, unknown>;
+            return {
+              title:
+                d.section_title ||
+                d.act_title ||
+                d.source_label ||
+                "Legal Section",
+              act_title: d.act_title,
+              section_number: d.section_number,
+              snippet: d.text || d.snippet || "",
+              score: d.score || 0.95,
+            };
+          }),
         });
       }
-    } catch (err: any) {
-      console.warn(`Could not reach backend at ${backendUrl}:`, err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      console.warn(`Could not reach backend at ${backendUrl}:`, message);
     }
 
     // Fallback response if backend service is offline
@@ -52,10 +56,9 @@ export async function POST(req: Request) {
       success: true,
       query,
     });
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message || "Internal Server Error" },
-      { status: 500 },
-    );
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Internal Server Error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

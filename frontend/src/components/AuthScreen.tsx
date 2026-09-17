@@ -19,9 +19,9 @@ interface AuthScreenProps {
 
 export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
   const router = useRouter();
-  const [localMode, setLocalMode] = useState<
-    "signin" | "signup" | "unverified"
-  >(mode);
+  const [localMode, setLocalMode] = useState<"signin" | "signup" | "unverified">(
+    mode
+  );
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -35,9 +35,15 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
   // For unverified screen state
   const [resendCooldown, setResendCooldown] = useState(0);
 
-  // Sync localMode with mode prop changes
+  // Sync localMode with mode prop changes when not in unverified state
+  // Use a ref to avoid triggering effect on initial mount
+  const isMountedRef = useRef(false);
   useEffect(() => {
-    if (mode !== localMode) {
+    if (!isMountedRef.current) {
+      isMountedRef.current = true;
+      return;
+    }
+    if (mode !== localMode && localMode !== "unverified") {
       setLocalMode(mode);
     }
   }, [mode, localMode]);
@@ -127,8 +133,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
           setLocalMode("unverified");
         }
       }
-    } catch (err: any) {
-      setError(err.message || "An unexpected error occurred");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "An unexpected error occurred";
+      setError(message);
     } finally {
       setIsLoading(false);
     }
@@ -164,8 +171,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
       setTimeout(() => {
         router.push("/");
       }, 1500);
-    } catch (err: any) {
-      setError(err.message || "Invalid or expired verification code");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Invalid or expired verification code";
+      setError(message);
     } finally {
       setIsLoading(false);
     }

@@ -27,10 +27,11 @@ export async function GET() {
         name: user.name,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Internal Server Error";
     console.error("[ME API ERROR]", error);
     return NextResponse.json(
-      { error: error.message || "Internal Server Error" },
+      { error: message },
       { status: 500 },
     );
   }

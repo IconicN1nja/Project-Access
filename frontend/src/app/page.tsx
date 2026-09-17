@@ -377,7 +377,7 @@ export default function Home() {
               messages: [...workingMessages],
             }),
           });
-        } catch (err) {
+        } catch {
           // Error saving final messages - will retry on next interaction
         }
       },
@@ -390,7 +390,7 @@ export default function Home() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ messages: [...workingMessages] }),
           });
-        } catch (saveErr) {
+        } catch {
           // Error persisting messages - state is preserved in memory
         }
       },
@@ -427,7 +427,7 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: updatedMessages }),
       });
-    } catch (err) {
+    } catch {
       // Error syncing - will retry on next interaction
     }
 

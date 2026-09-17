@@ -32,3 +32,11 @@ export interface PromptTemplate {
   title: string;
   prompt: string;
 }
+
+// Global type augmentation for Mongoose cached connection
+declare global {
+  var mongoose: {
+    conn: typeof import("mongoose") | null;
+    promise: Promise<typeof import("mongoose")> | null;
+  } | undefined;
+}

@@ -25,7 +25,7 @@ export class IntelligenceEngine {
     onSources?: (sources: SourceDoc[]) => void;
     onChunk?: (chunk: string) => void;
     onDone?: () => void;
-    onError?: (err: any) => void;
+    onError?: (err: unknown) => void;
   }) {
     this.abortController = new AbortController();
     const signal = this.abortController.signal;
@@ -53,8 +53,8 @@ export class IntelligenceEngine {
             finalSources = data.sources || [];
           }
         }
-      } catch (e: any) {
-        if (e.name === "AbortError") throw e;
+      } catch (e: unknown) {
+        if (e instanceof Error && e.name === "AbortError") throw e;
         // Backend request failed, fall back to local response
       }
 
@@ -80,8 +80,8 @@ export class IntelligenceEngine {
       }
 
       if (onDone) onDone();
-    } catch (err: any) {
-      if (err.name === "AbortError") {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === "AbortError") {
         // Stream was intentionally aborted
       } else {
         if (onError) onError(err);

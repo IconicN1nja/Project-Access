@@ -16,10 +16,11 @@ export async function GET() {
     const chats = await Chat.find({ userId }).sort({ updatedAt: -1 });
 
     return NextResponse.json({ success: true, chats });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Internal Server Error";
     console.error("[GET CHATS API ERROR]", error);
     return NextResponse.json(
-      { error: error.message || "Internal Server Error" },
+      { error: message },
       { status: 500 },
     );
   }
@@ -55,10 +56,11 @@ export async function POST(req: Request) {
     await newChat.save();
 
     return NextResponse.json({ success: true, chat: newChat });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Internal Server Error";
     console.error("[POST CHAT API ERROR]", error);
     return NextResponse.json(
-      { error: error.message || "Internal Server Error" },
+      { error: message },
       { status: 500 },
     );
   }
