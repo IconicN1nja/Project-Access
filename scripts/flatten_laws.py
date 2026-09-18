@@ -169,3 +169,194 @@ def flatten_legal_json(input_filepath, output_filepath, act_id, act_title):
 #     act_id="SC_ST_1989",
 #     act_title="The Scheduled Castes and the Scheduled Tribes (Prevention of Atrocities) Act, 1989",
 # )
+
+# Civil Laws 
+
+BASE = "/home/adarsh/Code/Projects/Project-Access/data/civil"
+
+# # 1. Code of Civil Procedure
+# flatten_legal_json(
+#     input_filepath=f"{BASE}/CPC/CPC.json",
+#     output_filepath=f"{BASE}/CPC/CPC_flattened.json",
+#     act_id="CPC_1908",
+#     act_title="The Code of Civil Procedure, 1908",
+# )
+#
+# # 2. Indian Contract Act
+# flatten_legal_json(
+#     input_filepath=f"{BASE}/ICA/ICA.json",
+#     output_filepath=f"{BASE}/ICA/ICA_flattened.json",
+#     act_id="ICA_1872",
+#     act_title="The Indian Contract Act, 1872",
+# )
+#
+# # 3. Indian Partnership Act
+# flatten_legal_json(
+#     input_filepath=f"{BASE}/IPA/IPA.json",
+#     output_filepath=f"{BASE}/IPA/IPA_flattened.json",
+#     act_id="IPA_1932",
+#     act_title="The Indian Partnership Act, 1932",
+# )
+#
+# # 4. Sale of Goods Act
+# flatten_legal_json(
+#     input_filepath=f"{BASE}/SOGA/SOGA.json",
+#     output_filepath=f"{BASE}/SOGA/SOGA_flattened.json",
+#     act_id="SOGA_1930",
+#     act_title="The Sale of Goods Act, 1930",
+# )
+#
+# # 5. Arbitration and Conciliation Act
+# flatten_legal_json(
+#     input_filepath=f"{BASE}/ACA/ACA.json",
+#     output_filepath=f"{BASE}/ACA/ACA_flattened.json",
+#     act_id="ACA_1996",
+#     act_title="The Arbitration and Conciliation Act, 1996",
+# )
+#
+# # 6. Transfer of Property Act
+# flatten_legal_json(
+#     input_filepath=f"{BASE}/TPA/TPA.json",
+#     output_filepath=f"{BASE}/TPA/TPA_flattened.json",
+#     act_id="TPA_1882",
+#     act_title="The Transfer of Property Act, 1882",
+# )
+#
+# # 7. Prohibition of Benami Property Transactions Act
+# flatten_legal_json(
+#     input_filepath=f"{BASE}/PBPT/PBPT.json",
+#     output_filepath=f"{BASE}/PBPT/PBPT_flattened.json",
+#     act_id="PBPT_1988",
+#     act_title="The Prohibition of Benami Property Transactions Act, 1988",
+# )
+#
+# # 8. Hindu Marriage Act
+# flatten_legal_json(
+#     input_filepath=f"{BASE}/HMA/HMA.json",
+#     output_filepath=f"{BASE}/HMA/HMA_flattened.json",
+#     act_id="HMA_1955",
+#     act_title="The Hindu Marriage Act, 1955",
+# )
+#
+# # 9. Hindu Succession Act
+# flatten_legal_json(
+#     input_filepath=f"{BASE}/HSA/HSA.json",
+#     output_filepath=f"{BASE}/HSA/HSA_flattened.json",
+#     act_id="HSA_1956",
+#     act_title="The Hindu Succession Act, 1956",
+# )
+#
+# # 10. Hindu Adoptions and Maintenance Act
+# flatten_legal_json(
+#     input_filepath=f"{BASE}/HAMA/HAMA.json",
+#     output_filepath=f"{BASE}/HAMA/HAMA_flattened.json",
+#     act_id="HAMA_1956",
+#     act_title="The Hindu Adoptions and Maintenance Act, 1956",
+# )
+#
+# # 11. Special Marriage Act
+# flatten_legal_json(
+#     input_filepath=f"{BASE}/SMA/SMA.json",
+#     output_filepath=f"{BASE}/SMA/SMA_flattened.json",
+#     act_id="SMA_1954",
+#     act_title="The Special Marriage Act, 1954",
+# )
+#
+# # 12. Specific Relief Act
+# flatten_legal_json(
+#     input_filepath=f"{BASE}/SRA/SRA.json",
+#     output_filepath=f"{BASE}/SRA/SRA_flattened.json",
+#     act_id="SRA_1963",
+#     act_title="The Specific Relief Act, 1963",
+# )
+#
+# # 13. Consumer Protection Act
+# flatten_legal_json(
+#     input_filepath=f"{BASE}/CPA/CPA.json",
+#     output_filepath=f"{BASE}/CPA/CPA_flattened.json",
+#     act_id="CPA_2019",
+#     act_title="The Consumer Protection Act, 2019",
+# )
+#
+# # 14. Debt Recovery Tribunal Act
+# flatten_legal_json(
+#     input_filepath=f"{BASE}/DRT/DRT.json",
+#     output_filepath=f"{BASE}/DRT/DRT_flattened.json",
+#     act_id="DRT_1993",
+#     act_title="The Recovery of Debts Due to Banks and Financial Institutions Act, 1993",
+# )
+#
+# # 15. Companies Act (NCLT)
+# flatten_legal_json(
+#     input_filepath=f"{BASE}/CA2013/CA2013.json",
+#     output_filepath=f"{BASE}/CA2013/CA2013_flattened.json",
+#     act_id="CA_2013",
+#     act_title="The Companies Act, 2013",
+# )
+#
+# # 16. Insolvency and Bankruptcy Code
+# flatten_legal_json(
+#     input_filepath=f"{BASE}/IBC/IBC.json",
+#     output_filepath=f"{BASE}/IBC/IBC_flattened.json",
+#     act_id="IBC_2016",
+#     act_title="The Insolvency and Bankruptcy Code, 2016",
+# )
+#
+# # 17. SARFAESI Act
+# flatten_legal_json(
+#     input_filepath=f"{BASE}/SARFAESI/SARFAESI.json",
+#     output_filepath=f"{BASE}/SARFAESI/SARFAESI_flattened.json",
+#     act_id="SARFAESI_2002",
+#     act_title="The Securitisation and Reconstruction of Financial Assets and Enforcement of Security Interest Act, 2002",
+# )
+#
+# # 18. Motor Vehicles Act
+# flatten_legal_json(
+#     input_filepath=f"{BASE}/MVA/MVA.json",
+#     output_filepath=f"{BASE}/MVA/MVA_flattened.json",
+#     act_id="MVA_1988",
+#     act_title="The Motor Vehicles Act, 1988",
+# )
+# # 19. Legal Services Authorities Act
+# flatten_legal_json(
+#     input_filepath=f"{BASE}/LSAA/LSAA.json",
+#     output_filepath=f"{BASE}/LSAA/LSAA_flattened.json",
+#     act_id="LSAA_1987",
+#     act_title="The Legal Services Authorities Act, 1987",
+# )
+# # 20. Income Tax Act
+# flatten_legal_json(
+#     input_filepath=f"{BASE}/ITA/ITA.json",
+#     output_filepath=f"{BASE}/ITA/ITA_flattened.json",
+#     act_id="ITA_1961",
+#     act_title="The Income-Tax Act, 1961",
+# )
+# # 21. CGST Act
+# flatten_legal_json(
+#     input_filepath=f"{BASE}/CGST/CGST.json",
+#     output_filepath=f"{BASE}/CGST/CGST_flattened.json",
+#     act_id="CGST_2017",
+#     act_title="The Central Goods and Services Tax Act, 2017",
+# )
+# # 22. Customs Act
+# flatten_legal_json(
+#     input_filepath=f"{BASE}/CA1962/CA1962.json",
+#     output_filepath=f"{BASE}/CA1962/CA1962_flattened.json",
+#     act_id="CUSTOMS_1962",
+#     act_title="The Customs Act, 1962",
+# )
+# # 23. Code on Wages Act
+# flatten_legal_json(
+#     input_filepath=f"{BASE}/COW/COW.json",
+#     output_filepath=f"{BASE}/COW/COW_flattened.json",
+#     act_id="CODE_ON_WAGES_2019",
+#     act_title="The Code on Wages, 2019",
+# )
+#
+# 24. Mediation Act
+flatten_legal_json(
+    input_filepath=f"{BASE}/MA/MA.json",
+    output_filepath=f"{BASE}/MA/MA_flattened.json",
+    act_id="MEDIATION_ACT_2023",
+    act_title="The Mediation Act, 2023",
+)
