@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Chat, Message } from "@/types";
 import { Storage } from "@/lib/storage";
 import { intelligence } from "@/lib/intelligence";
-import { Sidebar } from "@/components/Sidebar";
+import { DynamicIslandNav } from "@/components/DynamicIslandNav";
 import { ChatHeader } from "@/components/ChatHeader";
 import { MessageItem } from "@/components/MessageItem";
 import { ChatInput } from "@/components/ChatInput";
@@ -12,16 +12,22 @@ import { HeroHomepage } from "@/components/HeroHomepage";
 import { ClearModal } from "@/components/Modals";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { Toast } from "@/components/ui/Toast";
+import { RightSidebarDock } from "@/components/RightSidebarDock";
+import { AISpeakingOverlay } from "@/components/AISpeakingOverlay";
+import { playAudioOrSpeech, stopActiveAudio } from "@/lib/voiceHelper";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
-  const router = useRouter();
   const [user, setUser] = useState<{
     id: string;
     email: string;
     name: string;
-  } | null>(null);
-  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  } | null>({
+    id: "practitioner",
+    name: "Legal Practitioner",
+    email: "advocate@projectaccess.in",
+  });
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
 
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
@@ -29,10 +35,20 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Sidebar & Modals
-  const [isSidebarOpen, setIsSidebarOpen] = useState(() =>
-    typeof window !== "undefined" ? window.innerWidth >= 1024 : true,
-  );
+  // AI Speaking Overlay & Karaoke Highlight State
+  const [isAISpeaking, setIsAISpeaking] = useState(false);
+  const [speakingText, setSpeakingText] = useState("");
+  const [spokenCharIndex, setSpokenCharIndex] = useState(0);
+
+  const handleStopSpeech = () => {
+    stopActiveAudio();
+    setIsAISpeaking(false);
+    setSpeakingText("");
+    setSpokenCharIndex(0);
+  };
+
+  // Dynamic Island & Modals
+  const [activeMode, setActiveMode] = useState<"project-access" | "justice-compass">("justice-compass");
   const [isClearOpen, setIsClearOpen] = useState(false);
   const [toast, setToast] = useState<{
     message: string;
@@ -98,23 +114,18 @@ export default function Home() {
 
     checkAuthAndLoadChats();
 
-    // Keyboard shortcut for toggle sidebar (⌘B / Ctrl+B)
+    // Keyboard shortcut for New Chat (⌘K / Ctrl+K)
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "b") {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        setIsSidebarOpen((prev) => !prev);
+        handleNewChat();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Redirect unauthenticated users to login
-  useEffect(() => {
-    if (!isAuthLoading && !user) {
-      router.push("/login");
-    }
-  }, [isAuthLoading, user, router]);
+
 
   const showToast = (message: string, type: "info" | "error" = "info") => {
     setToast({ message, type });
@@ -140,22 +151,20 @@ export default function Home() {
     setActiveChatId(null);
     Storage.setActiveChatId(null);
     setInput("");
-    if (window.innerWidth < 1024) {
-      setIsSidebarOpen(false);
-    }
   };
 
   const handleSelectChat = (id: string) => {
     if (isGenerating) intelligence.abort();
     setActiveChatId(id);
     Storage.setActiveChatId(id);
-    if (window.innerWidth < 1024) {
-      setIsSidebarOpen(false);
-    }
   };
 
-  const handleDeleteChat = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleSelectStatute = (statute: string) => {
+    handleSendMessage(`Provide a comprehensive statutory breakdown of applicable sections under ${statute}`);
+  };
+
+  const handleDeleteChat = async (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     try {
       const res = await fetch(`/api/chats/${id}`, {
         method: "DELETE",
@@ -177,8 +186,8 @@ export default function Home() {
     }
   };
 
-  const handleRenameChat = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleRenameChat = async (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     const chat = chats.find((c) => c.id === id);
     if (!chat) return;
 
@@ -206,8 +215,8 @@ export default function Home() {
     }
   };
 
-  const handlePinChat = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handlePinChat = async (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     const chat = chats.find((c) => c.id === id);
     if (!chat) return;
     const nextPinned = !chat.pinned;
@@ -256,7 +265,7 @@ export default function Home() {
   };
 
   // 4. Send & Stream Message
-  const handleSendMessage = async (overrideText?: string) => {
+  const handleSendMessage = async (overrideText?: string, isVoice?: boolean) => {
     if (isGenerating) return;
     const textToSend = overrideText !== undefined ? overrideText : input.trim();
     if (!textToSend) return;
@@ -306,29 +315,15 @@ export default function Home() {
     const workingTitle =
       currentChat.messages.length === 0 ? titleFromText : currentChat.title;
 
-    if (isNewChat) {
-      try {
-        await fetch("/api/chats", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            id: chatId,
-            title: workingTitle,
-            messages: workingMessages,
-          }),
-        });
-      } catch {
-        // Chat will be saved on message completion
-      }
-    }
+    // Instant optimistic state update so UI switches to chat view immediately
+    const updatedChat: Chat = {
+      ...currentChat,
+      title: workingTitle,
+      updatedAt: Date.now(),
+      messages: workingMessages,
+    };
 
     setChats((prevChats) => {
-      const updatedChat: Chat = {
-        ...currentChat,
-        title: workingTitle,
-        updatedAt: Date.now(),
-        messages: workingMessages,
-      };
       return isNewChat
         ? [updatedChat, ...prevChats]
         : prevChats.map((c) => (c.id === chatId ? updatedChat : c));
@@ -339,56 +334,144 @@ export default function Home() {
     setInput("");
     setIsGenerating(true);
 
+    if (isNewChat) {
+      fetch("/api/chats", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: chatId,
+          title: workingTitle,
+          messages: workingMessages,
+        }),
+      }).catch((err) => {
+        console.warn("Initial chat persistence deferred:", err);
+      });
+    }
+
     await intelligence.streamResponse({
       query: textToSend,
       messages: workingMessages.slice(0, -1),
+      isVoice: !!isVoice,
       onThinking: (thinkingText) => {
         botMessage.thinking = thinkingText;
-        setChats((_prev) =>
-          _prev.map((c) =>
-            c.id === chatId ? { ...c, messages: [...workingMessages] } : c,
-          ),
+        setChats((prev) =>
+          prev.map((c) => {
+            if (c.id !== chatId) return c;
+            return {
+              ...c,
+              messages: c.messages.map((m) =>
+                m.id === botMessage.id ? { ...m, thinking: thinkingText } : m
+              ),
+            };
+          })
         );
       },
       onSources: (sourcesList) => {
         botMessage.sources = sourcesList;
-        setChats((_prev) =>
-          _prev.map((c) =>
-            c.id === chatId ? { ...c, messages: [...workingMessages] } : c,
-          ),
+        setChats((prev) =>
+          prev.map((c) => {
+            if (c.id !== chatId) return c;
+            return {
+              ...c,
+              messages: c.messages.map((m) =>
+                m.id === botMessage.id ? { ...m, sources: sourcesList } : m
+              ),
+            };
+          })
         );
       },
       onChunk: (chunk) => {
         botMessage.content += chunk;
-        setChats((_prev) =>
-          _prev.map((c) =>
-            c.id === chatId ? { ...c, messages: [...workingMessages] } : c,
-          ),
+        const currentContent = botMessage.content;
+        setChats((prev) =>
+          prev.map((c) => {
+            if (c.id !== chatId) return c;
+            return {
+              ...c,
+              messages: c.messages.map((m) =>
+                m.id === botMessage.id ? { ...m, content: currentContent } : m
+              ),
+            };
+          })
         );
       },
       onDone: async () => {
         setIsGenerating(false);
+        const finalMessages = workingMessages.map((m) =>
+          m.id === botMessage.id
+            ? {
+                ...m,
+                content: botMessage.content,
+                thinking: botMessage.thinking,
+                sources: botMessage.sources,
+              }
+            : m
+        );
+
+        if (isVoice) {
+          setSpeakingText(botMessage.content);
+          setSpokenCharIndex(0);
+          setIsAISpeaking(true);
+
+          playAudioOrSpeech({
+            text: botMessage.content,
+            onProgress: (charIndex) => {
+              setSpokenCharIndex(charIndex);
+            },
+            onEnd: () => {
+              setTimeout(() => {
+                setIsAISpeaking(false);
+                setSpeakingText("");
+                setSpokenCharIndex(0);
+              }, 500);
+            },
+            onError: () => {
+              setIsAISpeaking(false);
+              setSpeakingText("");
+              setSpokenCharIndex(0);
+            },
+          });
+        }
+
         try {
           await fetch(`/api/chats/${chatId}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               title: workingTitle,
-              messages: [...workingMessages],
+              messages: finalMessages,
             }),
           });
         } catch {
           // Error saving final messages - will retry on next interaction
         }
       },
-      onError: async (err) => {
+      onError: async (err: unknown) => {
         setIsGenerating(false);
-        botMessage.content += `\n\n> ⚠️ **Error**: ${err?.message || "Failed to generate response"}`;
+        const errMsg =
+          err instanceof Error
+            ? err.message
+            : (err as { message?: string })?.message ||
+              "Failed to generate response";
+        botMessage.content += `\n\n> ⚠️ **Error**: ${errMsg}`;
+        const finalMessages = workingMessages.map((m) =>
+          m.id === botMessage.id
+            ? {
+                ...m,
+                content: botMessage.content,
+                thinking: botMessage.thinking,
+                sources: botMessage.sources,
+              }
+            : m
+        );
+        setChats((prev) =>
+          prev.map((c) => (c.id === chatId ? { ...c, messages: finalMessages } : c))
+        );
         try {
           await fetch(`/api/chats/${chatId}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ messages: [...workingMessages] }),
+            body: JSON.stringify({ messages: finalMessages }),
           });
         } catch {
           // Error persisting messages - state is preserved in memory
@@ -399,6 +482,7 @@ export default function Home() {
 
   const handleStopGeneration = () => {
     intelligence.abort();
+    handleStopSpeech();
     setIsGenerating(false);
   };
 
@@ -458,48 +542,51 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] transition-colors">
-      {/* 1. Sidebar with collapsible desktop/mobile toggle */}
-      <Sidebar
+    <div className="flex h-screen w-screen overflow-hidden bg-[#0A0A0C] text-[#F5F5F0] transition-colors relative">
+      {/* 1. The Core Centerpiece: Top Bar & Navigation Stack */}
+      <DynamicIslandNav
         chats={chats}
         activeChatId={activeChatId}
-        isOpen={isSidebarOpen}
-        onToggle={() => setIsSidebarOpen((prev) => !prev)}
         onSelectChat={handleSelectChat}
         onNewChat={handleNewChat}
-        onPinChat={handlePinChat}
-        onRenameChat={handleRenameChat}
         onDeleteChat={handleDeleteChat}
+        onPinChat={handlePinChat}
         user={user}
         onLogout={handleLogout}
+        onSelectStatute={handleSelectStatute}
+        activeMode={activeMode}
+        onModeChange={setActiveMode}
       />
 
-      {/* 2. Main Chat Viewport */}
-      <main className="flex-1 flex flex-col h-full min-w-0 bg-[var(--color-bg-primary)] chat-bg-mesh relative transition-colors">
+      {/* 2. Main Canvas Viewport (MacBook Air 13" M4 Base Frame) */}
+      <main className="flex-1 flex flex-col h-full min-w-0 bg-[#0B1116] chat-bg-mesh relative transition-colors">
         {!activeChat || activeChat.messages.length === 0 ? (
           /* Figma-inspired AI Chatbot Homepage Hero View */
           <div className="flex-1 flex flex-col h-full overflow-y-auto">
             <HeroHomepage
-              onSendMessage={(q) => handleSendMessage(q)}
+              onSendMessage={(q, isVoice) => handleSendMessage(q, isVoice)}
               isGenerating={isGenerating}
               onStop={handleStopGeneration}
-              isSidebarOpen={isSidebarOpen}
-              onOpenSidebar={() => setIsSidebarOpen(true)}
+              activeMode={activeMode}
+              chats={chats}
+              onSelectChat={handleSelectChat}
+              onNewChat={handleNewChat}
+              user={user}
+              onLogout={handleLogout}
             />
           </div>
         ) : (
           <>
             <ChatHeader
               title={activeChat?.title || "Project Access"}
-              isSidebarOpen={isSidebarOpen}
-              onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
               onClear={() => setIsClearOpen(true)}
             />
 
             {/* Messages Scroll Area */}
             <div
               ref={scrollRef}
-              className="flex-1 overflow-y-auto p-4 sm:p-6 select-text relative z-10">
+              className="flex-1 overflow-y-auto p-4 sm:p-6 pt-16 sm:pt-20 select-text relative z-10"
+            >
               <div className="max-w-3xl mx-auto space-y-6 pb-4">
                 {activeChat.messages.map((msg, index) => (
                   <MessageItem
@@ -515,11 +602,11 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Input Bar for Active Chat */}
+            {/* Input Bar for Active Chat with Glassmorphic Floating Button System */}
             <ChatInput
               input={input}
               setInput={setInput}
-              onSend={() => handleSendMessage()}
+              onSend={(text, isVoice) => handleSendMessage(text, isVoice)}
               isGenerating={isGenerating}
               onStop={handleStopGeneration}
             />
@@ -527,11 +614,32 @@ export default function Home() {
         )}
       </main>
 
-      {/* 3. Clear Modal */}
+      {/* Floating Quick Actions Dock (4 Options on the Right Side) */}
+      <RightSidebarDock
+        chats={chats}
+        activeChatId={activeChatId}
+        onSelectChat={handleSelectChat}
+        onNewChat={handleNewChat}
+        onDeleteChat={handleDeleteChat}
+        onPinChat={handlePinChat}
+        user={user}
+        onLogout={handleLogout}
+        onSendMessage={(q, isVoice) => handleSendMessage(q, isVoice)}
+      />
+
+      {/* Clear Modal */}
       <ClearModal
         isOpen={isClearOpen}
         onClose={() => setIsClearOpen(false)}
         onConfirm={handleClearChat}
+      />
+
+      {/* AI Speaking Screen Overlay & Karaoke Highlight */}
+      <AISpeakingOverlay
+        isOpen={isAISpeaking}
+        text={speakingText}
+        spokenCharIndex={spokenCharIndex}
+        onStop={handleStopSpeech}
       />
 
       {/* Toast Notification */}

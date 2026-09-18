@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Message } from "@/types";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import {
   Copy,
   Check,
@@ -11,6 +12,8 @@ import {
   ChevronDown,
   RotateCw,
   Link as LinkIcon,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 
 interface MessageItemProps {
@@ -27,6 +30,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
   onRegenerate,
 }) => {
   const [copiedCodeIndex, setCopiedCodeIndex] = useState<number | null>(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const isUser = message.role === "user";
   const timeStr = new Date(message.timestamp).toLocaleTimeString([], {
     hour: "2-digit",
@@ -37,6 +41,41 @@ export const MessageItem: React.FC<MessageItemProps> = ({
     onCopy(code);
     setCopiedCodeIndex(index);
     setTimeout(() => setCopiedCodeIndex(null), 2000);
+  };
+
+  const toggleSpeech = () => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      alert("Speech synthesis is not supported in this browser.");
+      return;
+    }
+
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+
+    const plainText = message.content
+      .replace(/#{1,6}\s*/g, "")
+      .replace(/\*+/g, "")
+      .replace(/`{1,3}[\s\S]*?`{1,3}/g, "")
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+      .trim();
+
+    const utterance = new SpeechSynthesisUtterance(plainText);
+    utterance.lang = "en-IN";
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+    setIsSpeaking(true);
+  };
+
+  // Clean raw <br> tags: convert <br> to real HTML breaks or clean spacing
+  const formatContent = (text: string) => {
+    if (!text) return "";
+    return text.replace(/<br\s*\/?>/gi, "<br/>");
   };
 
   if (isUser) {
@@ -90,10 +129,11 @@ export const MessageItem: React.FC<MessageItemProps> = ({
           </details>
         )}
 
-        {/* Markdown Content */}
+        {/* Markdown Content with Original prose-chat Styling */}
         <div className="prose-chat text-[var(--color-text-secondary)] py-1">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeRaw]}
             components={{
               code({ node, inline, className, children, ...props }: any) {
                 const match = /language-(\w+)/.exec(className || "");
@@ -135,7 +175,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
                 );
               },
             }}>
-            {message.content}
+            {formatContent(message.content)}
           </ReactMarkdown>
 
           {isStreaming && <span className="cursor-blink" />}
@@ -169,6 +209,23 @@ export const MessageItem: React.FC<MessageItemProps> = ({
 
         {/* Minimal Action Toolbar */}
         <div className="flex items-center gap-1 mt-2 text-[var(--color-text-quaternary)]">
+          <button
+            title={isSpeaking ? "Stop reading aloud" : "Read aloud (Voice)"}
+            onClick={toggleSpeech}
+            className={`p-1 rounded text-xs transition-colors flex items-center gap-1 ${
+              isSpeaking
+                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
+                : "hover:bg-[var(--color-surface-hover)] hover:text-emerald-400"
+            }`}>
+            {isSpeaking ? (
+              <>
+                <VolumeX className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                <span className="text-[10px] text-emerald-400 font-medium">Speaking...</span>
+              </>
+            ) : (
+              <Volume2 className="w-3.5 h-3.5" />
+            )}
+          </button>
           <button
             title="Copy message"
             onClick={() => onCopy(message.content)}

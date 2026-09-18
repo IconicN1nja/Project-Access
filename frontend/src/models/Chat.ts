@@ -13,7 +13,7 @@ const SourceDocSchema = new Schema({
 const MessageSchema = new Schema({
   id: { type: String, required: true },
   role: { type: String, enum: ["user", "assistant"], required: true },
-  content: { type: String, required: true },
+  content: { type: String, default: "" },
   timestamp: { type: Number, required: true },
   thinking: { type: String },
   sources: [SourceDocSchema],

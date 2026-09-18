@@ -30,8 +30,11 @@ except Exception as e:
     print(f"Error initializing RAG pipeline: {e}")
     rag = None
 
+from typing import List, Dict, Any, Optional
+
 class QueryRequest(BaseModel):
     question: str
+    is_voice: Optional[bool] = False
 
 class QueryResponse(BaseModel):
     question: str
@@ -45,14 +48,14 @@ def handle_query(payload: QueryRequest):
         raise HTTPException(status_code=500, detail="RAG Pipeline not initialized on the server.")
     
     try:
-        print(f"\n[API] Received question: {payload.question}")
-        res = rag.answer_question(payload.question)
+        print(f"\n[API] Received question (is_voice={payload.is_voice}): {payload.question}")
+        res = rag.answer_question(payload.question, is_voice=bool(payload.is_voice))
         
         # Extract fields returned by answer_question
         return QueryResponse(
             question=res.get("question", payload.question),
             answer=res.get("answer", ""),
-            classified_collection=res.get("classified_collection", "bnss"),
+            classified_collection=res.get("classified_collection", "bns"),
             retrieved_docs=res.get("retrieved_docs", [])
         )
     except Exception as e:

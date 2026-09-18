@@ -32,7 +32,11 @@ class CriminalLawRetriever:
         if self.use_cloud:
             self.qdrant_url = self.qdrant_url.rstrip("/")
             print(f"Connecting to Qdrant Cloud server via REST API at: {self.qdrant_url}")
-            self.client = None
+            try:
+                self.client = QdrantClient(url=self.qdrant_url, port=443, api_key=self.api_key, timeout=60)
+            except Exception as e:
+                print(f"Warning: Could not initialize QdrantClient object for cloud: {e}")
+                self.client = None
         else:
             print(f"Using local Qdrant storage at: {storage_path}")
             self.client = QdrantClient(path=storage_path)
@@ -347,7 +351,10 @@ def main():
     retriever = CriminalLawRetriever()
 
     # Search across all known collections by default for testing
-    collections = ["arms", "bnss", "domestic_violence", "ndps", "pocso", "uapa"]
+    collections = [
+        "arms", "bns", "bnss", "bsa", "dca", "domestic_violence",
+        "dpa", "irwa", "ndps", "pca", "pmla", "pocso", "sc_st", "uapa"
+    ]
     all_results = []
 
     for col in collections:
@@ -373,11 +380,6 @@ def main():
         print(f"Chapter: {res['chapter']}")
         print(f"Title  : {res['section_title']}")
         print(f"Text Snippet:\n{res['text'][:300]}...\n")
-
-
-if __name__ == "__main__":
-    main()
-
 
 
 if __name__ == "__main__":

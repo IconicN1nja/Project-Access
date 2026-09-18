@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { query } = await req.json();
+    const { query, is_voice } = await req.json();
 
     if (!query || typeof query !== "string") {
       return NextResponse.json(
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
       const ragResponse = await fetch(backendUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: query }),
+        body: JSON.stringify({ question: query, is_voice: Boolean(is_voice) }),
         signal: AbortSignal.timeout(90000), // 90s timeout for LLM inference
       });
 
