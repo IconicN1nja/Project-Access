@@ -8,6 +8,7 @@ interface ClearModalProps {
   onConfirm: () => void;
 }
 
+
 export const ClearModal: React.FC<ClearModalProps> = ({
   isOpen,
   onClose,

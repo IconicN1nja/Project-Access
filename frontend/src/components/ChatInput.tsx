@@ -4,12 +4,17 @@ import React, { useRef, useEffect, useState } from "react";
 import { ArrowUp, Square, Paperclip, Mic } from "lucide-react";
 import { motion } from "framer-motion";
 
+import { SaveChatBanner } from "./SaveChatBanner";
+
 interface ChatInputProps {
   input: string;
   setInput: (val: string) => void;
   onSend: (textOverride?: string, isVoice?: boolean) => void;
   isGenerating: boolean;
   onStop: () => void;
+  showSaveBanner?: boolean;
+  onSaveChat?: () => void;
+  onDismissSave?: () => void;
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({
@@ -18,6 +23,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   onSend,
   isGenerating,
   onStop,
+  showSaveBanner = false,
+  onSaveChat,
+  onDismissSave,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -120,6 +128,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     <div className="p-3 sm:p-4 bg-transparent relative z-10">
       <div className="max-w-3xl mx-auto">
         
+        {/* Save Chat Prompt Banner */}
+        <SaveChatBanner
+          isVisible={showSaveBanner}
+          onSave={onSaveChat || (() => {})}
+          onDismiss={onDismissSave || (() => {})}
+        />
+
         {/* Listening Banner */}
         {isListening && (
           <motion.div

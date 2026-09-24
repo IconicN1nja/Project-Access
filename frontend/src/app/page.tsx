@@ -35,6 +35,10 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
 
+  // Save-chat prompt for in-memory chats after the first exchange
+  const [savePromptChatId, setSavePromptChatId] = useState<string | null>(null);
+  const persistedChatIdsRef = useRef<Set<string>>(new Set());
+
   // AI Speaking Overlay & Karaoke Highlight State
   const [isAISpeaking, setIsAISpeaking] = useState(false);
   const [speakingText, setSpeakingText] = useState("");
@@ -48,7 +52,9 @@ export default function Home() {
   };
 
   // Dynamic Island & Modals
-  const [activeMode, setActiveMode] = useState<"project-access" | "justice-compass">("justice-compass");
+  const [activeMode, setActiveMode] = useState<
+    "project-access" | "justice-compass"
+  >("project-access");
   const [isClearOpen, setIsClearOpen] = useState(false);
   const [toast, setToast] = useState<{
     message: string;
@@ -90,6 +96,9 @@ export default function Home() {
               const chatsData = await chatsRes.json();
               const dbChats = chatsData.chats || [];
               setChats(dbChats);
+              persistedChatIdsRef.current = new Set(
+                dbChats.map((c: { id: string }) => c.id),
+              );
 
               const loadedActiveId = Storage.getActiveChatId();
               if (
@@ -125,8 +134,6 @@ export default function Home() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-
-
   const showToast = (message: string, type: "info" | "error" = "info") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 2000);
@@ -151,6 +158,8 @@ export default function Home() {
     setActiveChatId(null);
     Storage.setActiveChatId(null);
     setInput("");
+    // Reset any pending save prompt so that a new chat will trigger the banner again
++    setSavePromptChatId(null);
   };
 
   const handleSelectChat = (id: string) => {
@@ -160,15 +169,19 @@ export default function Home() {
   };
 
   const handleSelectStatute = (statute: string) => {
-    handleSendMessage(`Provide a comprehensive statutory breakdown of applicable sections under ${statute}`);
+    handleSendMessage(
+      `Provide a comprehensive statutory breakdown of applicable sections under ${statute}`,
+    );
   };
 
   const handleDeleteChat = async (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     try {
-      const res = await fetch(`/api/chats/${id}`, {
-        method: "DELETE",
-      });
+      const res = persistedChatIdsRef.current.has(id)
+        ? await fetch(`/api/chats/${id}`, {
+            method: "DELETE",
+          })
+        : { ok: true };
       if (res.ok) {
         const updated = chats.filter((c) => c.id !== id);
         setChats(updated);
@@ -194,20 +207,22 @@ export default function Home() {
     const newTitle = prompt("Conversation title:", chat.title);
     if (newTitle && newTitle.trim()) {
       try {
-        const res = await fetch(`/api/chats/${id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: newTitle.trim() }),
-        });
-        if (res.ok) {
-          const updated = chats.map((c) =>
-            c.id === id
-              ? { ...c, title: newTitle.trim(), updatedAt: Date.now() }
-              : c,
-          );
-          setChats(updated);
-        } else {
-          showToast("Failed to rename chat", "error");
+        const updated = chats.map((c) =>
+          c.id === id
+            ? { ...c, title: newTitle.trim(), updatedAt: Date.now() }
+            : c,
+        );
+        setChats(updated);
+
+        if (persistedChatIdsRef.current.has(id)) {
+          const res = await fetch(`/api/chats/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title: newTitle.trim() }),
+          });
+          if (!res.ok) {
+            showToast("Failed to rename chat", "error");
+          }
         }
       } catch {
         showToast("Error renaming chat", "error");
@@ -222,18 +237,20 @@ export default function Home() {
     const nextPinned = !chat.pinned;
 
     try {
-      const res = await fetch(`/api/chats/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pinned: nextPinned }),
-      });
-      if (res.ok) {
-        const updated = chats.map((c) =>
-          c.id === id ? { ...c, pinned: nextPinned } : c,
-        );
-        setChats(updated);
-      } else {
-        showToast("Failed to pin chat", "error");
+      const updated = chats.map((c) =>
+        c.id === id ? { ...c, pinned: nextPinned } : c,
+      );
+      setChats(updated);
+
+      if (persistedChatIdsRef.current.has(id)) {
+        const res = await fetch(`/api/chats/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pinned: nextPinned }),
+        });
+        if (!res.ok) {
+          showToast("Failed to pin chat", "error");
+        }
       }
     } catch {
       showToast("Error pinning chat", "error");
@@ -243,21 +260,23 @@ export default function Home() {
   const handleClearChat = async () => {
     if (!activeChatId) return;
     try {
-      const res = await fetch(`/api/chats/${activeChatId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: [] }),
-      });
-      if (res.ok) {
-        const updated = chats.map((c) =>
-          c.id === activeChatId
-            ? { ...c, messages: [], updatedAt: Date.now() }
-            : c,
-        );
-        setChats(updated);
-        showToast("Messages cleared");
-      } else {
-        showToast("Failed to clear chat", "error");
+      const updated = chats.map((c) =>
+        c.id === activeChatId
+          ? { ...c, messages: [], updatedAt: Date.now() }
+          : c,
+      );
+      setChats(updated);
+      showToast("Messages cleared");
+
+      if (persistedChatIdsRef.current.has(activeChatId)) {
+        const res = await fetch(`/api/chats/${activeChatId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: [] }),
+        });
+        if (!res.ok) {
+          showToast("Failed to clear chat", "error");
+        }
       }
     } catch {
       showToast("Error clearing chat", "error");
@@ -265,7 +284,10 @@ export default function Home() {
   };
 
   // 4. Send & Stream Message
-  const handleSendMessage = async (overrideText?: string, isVoice?: boolean) => {
+  const handleSendMessage = async (
+    overrideText?: string,
+    isVoice?: boolean,
+  ) => {
     if (isGenerating) return;
     const textToSend = overrideText !== undefined ? overrideText : input.trim();
     if (!textToSend) return;
@@ -334,20 +356,6 @@ export default function Home() {
     setInput("");
     setIsGenerating(true);
 
-    if (isNewChat) {
-      fetch("/api/chats", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: chatId,
-          title: workingTitle,
-          messages: workingMessages,
-        }),
-      }).catch((err) => {
-        console.warn("Initial chat persistence deferred:", err);
-      });
-    }
-
     await intelligence.streamResponse({
       query: textToSend,
       messages: workingMessages.slice(0, -1),
@@ -360,10 +368,10 @@ export default function Home() {
             return {
               ...c,
               messages: c.messages.map((m) =>
-                m.id === botMessage.id ? { ...m, thinking: thinkingText } : m
+                m.id === botMessage.id ? { ...m, thinking: thinkingText } : m,
               ),
             };
-          })
+          }),
         );
       },
       onSources: (sourcesList) => {
@@ -374,10 +382,10 @@ export default function Home() {
             return {
               ...c,
               messages: c.messages.map((m) =>
-                m.id === botMessage.id ? { ...m, sources: sourcesList } : m
+                m.id === botMessage.id ? { ...m, sources: sourcesList } : m,
               ),
             };
-          })
+          }),
         );
       },
       onChunk: (chunk) => {
@@ -389,10 +397,10 @@ export default function Home() {
             return {
               ...c,
               messages: c.messages.map((m) =>
-                m.id === botMessage.id ? { ...m, content: currentContent } : m
+                m.id === botMessage.id ? { ...m, content: currentContent } : m,
               ),
             };
-          })
+          }),
         );
       },
       onDone: async () => {
@@ -405,7 +413,7 @@ export default function Home() {
                 thinking: botMessage.thinking,
                 sources: botMessage.sources,
               }
-            : m
+            : m,
         );
 
         if (isVoice) {
@@ -433,17 +441,22 @@ export default function Home() {
           });
         }
 
-        try {
-          await fetch(`/api/chats/${chatId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              title: workingTitle,
-              messages: finalMessages,
-            }),
-          });
-        } catch {
-          // Error saving final messages - will retry on next interaction
+        if (isNewChat) {
+          // Ask the user whether to persist this chat to MongoDB
+          setSavePromptChatId(chatId);
+        } else if (persistedChatIdsRef.current.has(chatId)) {
+          try {
+            await fetch(`/api/chats/${chatId}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                title: workingTitle,
+                messages: finalMessages,
+              }),
+            });
+          } catch {
+            // Error saving final messages - will retry on next interaction
+          }
         }
       },
       onError: async (err: unknown) => {
@@ -462,19 +475,23 @@ export default function Home() {
                 thinking: botMessage.thinking,
                 sources: botMessage.sources,
               }
-            : m
+            : m,
         );
         setChats((prev) =>
-          prev.map((c) => (c.id === chatId ? { ...c, messages: finalMessages } : c))
+          prev.map((c) =>
+            c.id === chatId ? { ...c, messages: finalMessages } : c,
+          ),
         );
-        try {
-          await fetch(`/api/chats/${chatId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ messages: finalMessages }),
-          });
-        } catch {
-          // Error persisting messages - state is preserved in memory
+        if (persistedChatIdsRef.current.has(chatId)) {
+          try {
+            await fetch(`/api/chats/${chatId}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ messages: finalMessages }),
+            });
+          } catch {
+            // Error persisting messages - state is preserved in memory
+          }
         }
       },
     });
@@ -505,14 +522,16 @@ export default function Home() {
     );
     setChats(updatedChats);
 
-    try {
-      await fetch(`/api/chats/${activeChat.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: updatedMessages }),
-      });
-    } catch {
-      // Error syncing - will retry on next interaction
+    if (persistedChatIdsRef.current.has(activeChat.id)) {
+      try {
+        await fetch(`/api/chats/${activeChat.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: updatedMessages }),
+        });
+      } catch {
+        // Error syncing - will retry on next interaction
+      }
     }
 
     if (prevUserText) {
@@ -523,6 +542,40 @@ export default function Home() {
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
     showToast("Copied");
+  };
+
+  const handleSaveChat = async () => {
+    if (!savePromptChatId) return;
+    const chatId = savePromptChatId;
+    const chat = chats.find((c) => c.id === chatId);
+    setSavePromptChatId(null);
+    if (!chat) return;
+
+    try {
+      const res = await fetch("/api/chats", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: chat.id,
+          title: chat.title,
+          pinned: chat.pinned,
+          messages: chat.messages,
+        }),
+      });
+      if (res.ok) {
+        persistedChatIdsRef.current.add(chatId);
+        showToast("Chat saved");
+      } else {
+        showToast("Failed to save chat", "error");
+      }
+    } catch {
+      showToast("Error saving chat", "error");
+    }
+  };
+
+  const handleDeclineSave = () => {
+    // Chat stays in-memory only and is lost on refresh
+    setSavePromptChatId(null);
   };
 
   if (isAuthLoading) {
@@ -585,8 +638,7 @@ export default function Home() {
             {/* Messages Scroll Area */}
             <div
               ref={scrollRef}
-              className="flex-1 overflow-y-auto p-4 sm:p-6 pt-16 sm:pt-20 select-text relative z-10"
-            >
+              className="flex-1 overflow-y-auto p-4 sm:p-6 pt-16 sm:pt-20 select-text relative z-10">
               <div className="max-w-3xl mx-auto space-y-6 pb-4">
                 {activeChat.messages.map((msg, index) => (
                   <MessageItem
@@ -609,6 +661,11 @@ export default function Home() {
               onSend={(text, isVoice) => handleSendMessage(text, isVoice)}
               isGenerating={isGenerating}
               onStop={handleStopGeneration}
+              showSaveBanner={Boolean(
+                savePromptChatId && activeChatId === savePromptChatId,
+              )}
+              onSaveChat={handleSaveChat}
+              onDismissSave={handleDeclineSave}
             />
           </>
         )}
