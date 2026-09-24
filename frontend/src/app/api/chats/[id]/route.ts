@@ -28,12 +28,10 @@ export async function GET(req: Request, { params }: RouteParams) {
 
     return NextResponse.json({ success: true, chat });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Internal Server Error";
+    const message =
+      error instanceof Error ? error.message : "Internal Server Error";
     console.error("[GET CHAT DETAIL API ERROR]", error);
-    return NextResponse.json(
-      { error: message },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -65,12 +63,10 @@ export async function PUT(req: Request, { params }: RouteParams) {
 
     return NextResponse.json({ success: true, chat });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Internal Server Error";
+    const message =
+      error instanceof Error ? error.message : "Internal Server Error";
     console.error("[PUT CHAT DETAIL API ERROR]", error);
-    return NextResponse.json(
-      { error: message },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -101,11 +97,9 @@ export async function DELETE(req: Request, { params }: RouteParams) {
       message: "Chat deleted successfully",
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Internal Server Error";
+    const message =
+      error instanceof Error ? error.message : "Internal Server Error";
     console.error("[DELETE CHAT API ERROR]", error);
-    return NextResponse.json(
-      { error: message },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -159,7 +159,7 @@ export default function Home() {
     Storage.setActiveChatId(null);
     setInput("");
     // Reset any pending save prompt so that a new chat will trigger the banner again
-+    setSavePromptChatId(null);
+    +setSavePromptChatId(null);
   };
 
   const handleSelectChat = (id: string) => {

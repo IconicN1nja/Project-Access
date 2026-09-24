@@ -35,8 +35,10 @@ export interface PromptTemplate {
 
 // Global type augmentation for Mongoose cached connection
 declare global {
-  var mongoose: {
-    conn: typeof import("mongoose") | null;
-    promise: Promise<typeof import("mongoose")> | null;
-  } | undefined;
+  var mongoose:
+    | {
+        conn: typeof import("mongoose") | null;
+        promise: Promise<typeof import("mongoose")> | null;
+      }
+    | undefined;
 }

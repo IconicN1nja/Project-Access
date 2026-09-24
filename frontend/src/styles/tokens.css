@@ -42,9 +42,9 @@
      ============================================ */
 
   /* Backgrounds - Near-Black & Dark Purple Theme */
-  --color-bg-primary: #0A0A0C;
-  --color-bg-secondary: #0D0D10;
-  --color-bg-tertiary: #14141A;
+  --color-bg-primary: #0a0a0c;
+  --color-bg-secondary: #0d0d10;
+  --color-bg-tertiary: #14141a;
   --color-bg-elevated: #171720;
   --color-bg-overlay: rgba(0, 0, 0, 0.85);
 
@@ -56,11 +56,11 @@
   --color-surface-active: rgba(48, 48, 68, 0.9);
 
   /* Text Colors - Off-White on Near-Black */
-  --color-text-primary: #F5F5F0;
-  --color-text-secondary: #D4D4D8;
-  --color-text-tertiary: #8E8E93;
+  --color-text-primary: #f5f5f0;
+  --color-text-secondary: #d4d4d8;
+  --color-text-tertiary: #8e8e93;
   --color-text-quaternary: #636366;
-  --color-text-inverted: #0A0A0C;
+  --color-text-inverted: #0a0a0c;
 
   /* Borders - Subtle Hairline on Dark */
   --color-border-primary: rgba(255, 255, 255, 0.08);
@@ -69,31 +69,31 @@
   --color-border-focus: rgba(124, 58, 237, 0.6);
 
   /* Accent Colors - Deep Dark Purple (#5B21B6 -> #7C3AED) */
-  --color-accent-primary: #7C3AED;
-  --color-accent-primary-hover: #6D28D9;
+  --color-accent-primary: #7c3aed;
+  --color-accent-primary-hover: #6d28d9;
   --color-accent-primary-light: rgba(124, 58, 237, 0.15);
   --color-accent-primary-border: rgba(124, 58, 237, 0.35);
 
   /* Interactive States */
-  --color-interactive-primary: #7C3AED;
-  --color-interactive-primary-hover: #6D28D9;
+  --color-interactive-primary: #7c3aed;
+  --color-interactive-primary-hover: #6d28d9;
   --color-interactive-secondary: rgba(38, 38, 54, 0.8);
   --color-interactive-secondary-hover: rgba(48, 48, 68, 0.9);
 
   /* Feedback Colors */
-  --color-success: #10B981;
+  --color-success: #10b981;
   --color-success-bg: rgba(16, 185, 129, 0.15);
   --color-success-border: rgba(16, 185, 129, 0.3);
 
-  --color-error: #F87171;
+  --color-error: #f87171;
   --color-error-bg: rgba(248, 113, 113, 0.15);
   --color-error-border: rgba(248, 113, 113, 0.3);
 
-  --color-warning: #FBBF24;
+  --color-warning: #fbbf24;
   --color-warning-bg: rgba(251, 191, 36, 0.15);
   --color-warning-border: rgba(251, 191, 36, 0.3);
 
-  --color-info: #818CF8;
+  --color-info: #818cf8;
   --color-info-bg: rgba(129, 140, 248, 0.15);
   --color-info-border: rgba(129, 140, 248, 0.3);
 
@@ -186,10 +186,10 @@
 :root[data-theme="dark"],
 .dark {
   /* Dark mode uses even deeper near-black tones */
-  --color-bg-primary: #0A0A0C;
-  --color-bg-secondary: #0D0D10;
+  --color-bg-primary: #0a0a0c;
+  --color-bg-secondary: #0d0d10;
   --color-bg-tertiary: #131318;
-  --color-bg-elevated: #16161D;
+  --color-bg-elevated: #16161d;
   --color-bg-overlay: rgba(0, 0, 0, 0.85);
 
   /* Surfaces - Deeper glass morphism */
@@ -200,11 +200,11 @@
   --color-surface-active: rgba(48, 48, 68, 1);
 
   /* Text Colors - Off-white contrast */
-  --color-text-primary: #F5F5F0;
-  --color-text-secondary: #D4D4D8;
-  --color-text-tertiary: #8E8E93;
+  --color-text-primary: #f5f5f0;
+  --color-text-secondary: #d4d4d8;
+  --color-text-tertiary: #8e8e93;
   --color-text-quaternary: #636366;
-  --color-text-inverted: #0A0A0C;
+  --color-text-inverted: #0a0a0c;
 
   /* Borders */
   --color-border-primary: rgba(255, 255, 255, 0.08);
@@ -213,14 +213,14 @@
   --color-border-focus: rgba(124, 58, 237, 0.6);
 
   /* Interactive States */
-  --color-interactive-primary: #7C3AED;
-  --color-interactive-primary-hover: #8B5CF6;
+  --color-interactive-primary: #7c3aed;
+  --color-interactive-primary-hover: #8b5cf6;
   --color-interactive-secondary: rgba(38, 38, 54, 0.9);
   --color-interactive-secondary-hover: rgba(48, 48, 68, 1);
 
   /* Accent Colors - Vibrant purple */
-  --color-accent-primary: #8B5CF6;
-  --color-accent-primary-hover: #7C3AED;
+  --color-accent-primary: #8b5cf6;
+  --color-accent-primary-hover: #7c3aed;
   --color-accent-primary-light: rgba(124, 58, 237, 0.2);
   --color-accent-primary-border: rgba(124, 58, 237, 0.4);
 

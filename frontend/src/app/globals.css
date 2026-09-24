@@ -236,11 +236,24 @@ details[open] summary svg.chevron-icon {
 
 /* Dark Premium Background with Subtle Atmospheric Teal/Emerald Glow from Figma */
 .hero-bg-mesh {
-  background-color: #0B1116;
-  background-image: 
-    radial-gradient(ellipse 70% 50% at 50% -5%, rgba(20, 184, 166, 0.25) 0%, rgba(13, 78, 78, 0.16) 35%, transparent 75%),
-    radial-gradient(circle at 10% 25%, rgba(16, 185, 129, 0.08) 0%, transparent 45%),
-    radial-gradient(circle at 85% 75%, rgba(15, 23, 42, 0.5) 0%, transparent 60%);
+  background-color: #0b1116;
+  background-image:
+    radial-gradient(
+      ellipse 70% 50% at 50% -5%,
+      rgba(20, 184, 166, 0.25) 0%,
+      rgba(13, 78, 78, 0.16) 35%,
+      transparent 75%
+    ),
+    radial-gradient(
+      circle at 10% 25%,
+      rgba(16, 185, 129, 0.08) 0%,
+      transparent 45%
+    ),
+    radial-gradient(
+      circle at 85% 75%,
+      rgba(15, 23, 42, 0.5) 0%,
+      transparent 60%
+    );
   position: relative;
 }
 
@@ -248,7 +261,10 @@ details[open] summary svg.chevron-icon {
   content: "";
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 0);
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.035) 1px,
+    transparent 0
+  );
   background-size: 24px 24px;
   pointer-events: none;
   opacity: 0.5;
@@ -256,10 +272,18 @@ details[open] summary svg.chevron-icon {
 
 /* Chat Background - Matching atmosphere */
 .chat-bg-mesh {
-  background-color: #0B1116;
-  background-image: 
-    radial-gradient(ellipse 70% 45% at 50% -5%, rgba(20, 184, 166, 0.18) 0%, transparent 70%),
-    radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.06) 0%, transparent 50%);
+  background-color: #0b1116;
+  background-image:
+    radial-gradient(
+      ellipse 70% 45% at 50% -5%,
+      rgba(20, 184, 166, 0.18) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      circle at 85% 30%,
+      rgba(16, 185, 129, 0.06) 0%,
+      transparent 50%
+    );
   position: relative;
 }
 
@@ -276,11 +300,12 @@ details[open] summary svg.chevron-icon {
   border-top-color: rgba(255, 255, 255, 0.18);
   border-bottom-color: rgba(255, 255, 255, 0.03);
   box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.45);
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 0.2s ease,
-              background-color 0.2s ease,
-              color 0.2s ease;
+  transition:
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .btn-glass:hover {
@@ -288,7 +313,9 @@ details[open] summary svg.chevron-icon {
   background: rgba(26, 26, 36, 0.8);
   border-color: rgba(255, 255, 255, 0.18);
   border-top-color: rgba(255, 255, 255, 0.28);
-  box-shadow: 0 10px 24px -2px rgba(0, 0, 0, 0.65), 0 0 20px rgba(124, 58, 237, 0.18);
+  box-shadow:
+    0 10px 24px -2px rgba(0, 0, 0, 0.65),
+    0 0 20px rgba(124, 58, 237, 0.18);
 }
 
 .btn-glass:active {
@@ -303,7 +330,7 @@ details[open] summary svg.chevron-icon {
 
 /* Send Button (Green emerald variant matching Figma screenshot) */
 .btn-send-green {
-  background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-top-color: rgba(255, 255, 255, 0.45);
   box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
@@ -312,7 +339,9 @@ details[open] summary svg.chevron-icon {
 
 .btn-send-green:hover:not(:disabled) {
   transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6), 0 0 16px rgba(52, 211, 153, 0.5);
+  box-shadow:
+    0 8px 25px rgba(16, 185, 129, 0.6),
+    0 0 16px rgba(52, 211, 153, 0.5);
 }
 
 .btn-send-green:active:not(:disabled) {
@@ -322,13 +351,19 @@ details[open] summary svg.chevron-icon {
 
 @keyframes greenGlowPulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7), 0 4px 16px rgba(5, 150, 105, 0.5);
+    box-shadow:
+      0 0 0 0 rgba(16, 185, 129, 0.7),
+      0 4px 16px rgba(5, 150, 105, 0.5);
   }
   70% {
-    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0), 0 6px 20px rgba(5, 150, 105, 0.6);
+    box-shadow:
+      0 0 0 8px rgba(16, 185, 129, 0),
+      0 6px 20px rgba(5, 150, 105, 0.6);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0), 0 4px 16px rgba(5, 150, 105, 0.5);
+    box-shadow:
+      0 0 0 0 rgba(16, 185, 129, 0),
+      0 4px 16px rgba(5, 150, 105, 0.5);
   }
 }
 
@@ -397,7 +432,8 @@ details[open] summary svg.chevron-icon {
   border-radius: 9999px;
   border: 1px solid rgba(16, 185, 129, 0.5);
   pointer-events: none;
-  animation: greenBoundaryRippleAnim 2.8s cubic-bezier(0.16, 0.85, 0.45, 1) infinite;
+  animation: greenBoundaryRippleAnim 2.8s cubic-bezier(0.16, 0.85, 0.45, 1)
+    infinite;
   transform-origin: center center;
 }
 
@@ -407,7 +443,8 @@ details[open] summary svg.chevron-icon {
   border-radius: 9999px;
   border: 1px solid rgba(16, 185, 129, 0.5);
   pointer-events: none;
-  animation: greenBoundaryRippleAnim 2.8s cubic-bezier(0.16, 0.85, 0.45, 1) infinite;
+  animation: greenBoundaryRippleAnim 2.8s cubic-bezier(0.16, 0.85, 0.45, 1)
+    infinite;
   animation-delay: 0.9s;
   transform-origin: center center;
 }
@@ -418,7 +455,8 @@ details[open] summary svg.chevron-icon {
   border-radius: 9999px;
   border: 1px solid rgba(16, 185, 129, 0.5);
   pointer-events: none;
-  animation: greenBoundaryRippleAnim 2.8s cubic-bezier(0.16, 0.85, 0.45, 1) infinite;
+  animation: greenBoundaryRippleAnim 2.8s cubic-bezier(0.16, 0.85, 0.45, 1)
+    infinite;
   animation-delay: 1.8s;
   transform-origin: center center;
 }
@@ -429,7 +467,9 @@ details[open] summary svg.chevron-icon {
     transform: scale(0.85);
     opacity: 0.85;
     border-color: rgba(74, 222, 128, 0.9);
-    box-shadow: 0 0 10px 2px rgba(52, 211, 153, 0.7), inset 0 0 6px rgba(16, 185, 129, 0.4);
+    box-shadow:
+      0 0 10px 2px rgba(52, 211, 153, 0.7),
+      inset 0 0 6px rgba(16, 185, 129, 0.4);
   }
   30% {
     opacity: 0.65;
@@ -461,7 +501,8 @@ details[open] summary svg.chevron-icon {
   border-radius: 9999px;
   border: 1.5px solid rgba(74, 222, 128, 0.9);
   pointer-events: none;
-  animation: pinBoundaryGlowRippleAnim 2.6s cubic-bezier(0.16, 0.85, 0.45, 1) infinite;
+  animation: pinBoundaryGlowRippleAnim 2.6s cubic-bezier(0.16, 0.85, 0.45, 1)
+    infinite;
   transform-origin: center center;
 }
 
@@ -472,7 +513,8 @@ details[open] summary svg.chevron-icon {
   border-radius: 9999px;
   border: 1.5px solid rgba(74, 222, 128, 0.9);
   pointer-events: none;
-  animation: pinBoundaryGlowRippleAnim 2.6s cubic-bezier(0.16, 0.85, 0.45, 1) infinite;
+  animation: pinBoundaryGlowRippleAnim 2.6s cubic-bezier(0.16, 0.85, 0.45, 1)
+    infinite;
   animation-delay: 0.85s;
   transform-origin: center center;
 }
@@ -484,7 +526,8 @@ details[open] summary svg.chevron-icon {
   border-radius: 9999px;
   border: 1.5px solid rgba(74, 222, 128, 0.9);
   pointer-events: none;
-  animation: pinBoundaryGlowRippleAnim 2.6s cubic-bezier(0.16, 0.85, 0.45, 1) infinite;
+  animation: pinBoundaryGlowRippleAnim 2.6s cubic-bezier(0.16, 0.85, 0.45, 1)
+    infinite;
   animation-delay: 1.7s;
   transform-origin: center center;
 }
