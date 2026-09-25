@@ -66,27 +66,69 @@ export const RightSidebarDock: React.FC<RightSidebarDockProps> = ({
   const [voiceRate, setVoiceRate] = useState<number>(1.0);
   const [isTestingVoice, setIsTestingVoice] = useState<boolean>(false);
 
+  const loadVoices = React.useCallback(() => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    const voices = window.speechSynthesis.getVoices();
+    setSystemVoices(voices);
+    const settings = getSavedVoiceSettings();
+    if (settings.voiceURI) {
+      setSelectedVoiceURI(settings.voiceURI);
+    } else if (voices.length > 0) {
+      setSelectedVoiceURI(voices[0].voiceURI);
+    }
+    if (settings.pitch !== undefined) setVoicePitch(settings.pitch);
+    if (settings.rate !== undefined) setVoiceRate(settings.rate);
+  }, []);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const loadVoices = () => {
-      if ("speechSynthesis" in window) {
-        const voices = window.speechSynthesis.getVoices();
-        setSystemVoices(voices);
-        const settings = getSavedVoiceSettings();
-        if (settings.voiceURI) {
-          setSelectedVoiceURI(settings.voiceURI);
-        } else if (voices.length > 0) {
-          setSelectedVoiceURI(voices[0].voiceURI);
-        }
-        if (settings.pitch !== undefined) setVoicePitch(settings.pitch);
-        if (settings.rate !== undefined) setVoiceRate(settings.rate);
-      }
-    };
     loadVoices();
+    let intervalId: any = null;
     if ("speechSynthesis" in window) {
       window.speechSynthesis.onvoiceschanged = loadVoices;
+      intervalId = setInterval(() => {
+        const v = window.speechSynthesis.getVoices();
+        if (v.length > 0) {
+          setSystemVoices(v);
+        }
+      }, 500);
     }
-  }, []);
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [loadVoices]);
+
+  useEffect(() => {
+    if (activeRightPanel === "customize") {
+      loadVoices();
+    }
+  }, [activeRightPanel, loadVoices]);
+
+  const groupedVoices = React.useMemo(() => {
+    const indian = systemVoices.filter(
+      (v) =>
+        v.lang.toLowerCase().includes("in") ||
+        v.name.toLowerCase().includes("india") ||
+        v.name.toLowerCase().includes("hindi") ||
+        v.name.toLowerCase().includes("rishi") ||
+        v.name.toLowerCase().includes("veena") ||
+        v.name.toLowerCase().includes("heera")
+    );
+    const us = systemVoices.filter(
+      (v) => (v.lang.toLowerCase().includes("us") || v.lang === "en-US") && !indian.includes(v)
+    );
+    const uk = systemVoices.filter(
+      (v) => (v.lang.toLowerCase().includes("gb") || v.lang.toLowerCase().includes("uk")) && !indian.includes(v)
+    );
+    const otherEn = systemVoices.filter(
+      (v) => v.lang.toLowerCase().startsWith("en") && !indian.includes(v) && !us.includes(v) && !uk.includes(v)
+    );
+    const international = systemVoices.filter(
+      (v) => !v.lang.toLowerCase().startsWith("en") && !indian.includes(v)
+    );
+
+    return { indian, us, uk, otherEn, international };
+  }, [systemVoices]);
 
   const handleVoiceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const uri = e.target.value;
@@ -408,18 +450,60 @@ export const RightSidebarDock: React.FC<RightSidebarDockProps> = ({
                         <select
                           value={selectedVoiceURI}
                           onChange={handleVoiceChange}
-                          className="w-full bg-transparent text-xs text-white border-0 focus:outline-none cursor-pointer truncate font-medium"
+                          className="w-full bg-[#0E171D] text-xs text-white border-0 focus:outline-none cursor-pointer truncate font-medium py-1"
                         >
-                          {systemVoices.length > 0 ? (
-                            systemVoices.map((v) => (
-                              <option key={v.voiceURI} value={v.voiceURI} className="bg-[#0E171D] text-white">
-                                {v.name} ({v.lang})
-                              </option>
-                            ))
-                          ) : (
+                          {systemVoices.length === 0 ? (
                             <option value="" className="bg-[#0E171D] text-white">
-                              Browser Standard Voice
+                              Standard System Speaker (Loading browser voices...)
                             </option>
+                          ) : (
+                            <>
+                              {groupedVoices.indian.length > 0 && (
+                                <optgroup label="🇮🇳 Indian Accents & Regional Speakers">
+                                  {groupedVoices.indian.map((v) => (
+                                    <option key={v.voiceURI} value={v.voiceURI} className="bg-[#0E171D] text-white">
+                                      {v.name} ({v.lang})
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              )}
+                              {groupedVoices.us.length > 0 && (
+                                <optgroup label="🇺🇸 US English Speakers">
+                                  {groupedVoices.us.map((v) => (
+                                    <option key={v.voiceURI} value={v.voiceURI} className="bg-[#0E171D] text-white">
+                                      {v.name} ({v.lang})
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              )}
+                              {groupedVoices.uk.length > 0 && (
+                                <optgroup label="🇬🇧 UK English Speakers">
+                                  {groupedVoices.uk.map((v) => (
+                                    <option key={v.voiceURI} value={v.voiceURI} className="bg-[#0E171D] text-white">
+                                      {v.name} ({v.lang})
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              )}
+                              {groupedVoices.otherEn.length > 0 && (
+                                <optgroup label="🌐 Global English Speakers">
+                                  {groupedVoices.otherEn.map((v) => (
+                                    <option key={v.voiceURI} value={v.voiceURI} className="bg-[#0E171D] text-white">
+                                      {v.name} ({v.lang})
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              )}
+                              {groupedVoices.international.length > 0 && (
+                                <optgroup label="🌍 International Multilingual Speakers">
+                                  {groupedVoices.international.map((v) => (
+                                    <option key={v.voiceURI} value={v.voiceURI} className="bg-[#0E171D] text-white">
+                                      {v.name} ({v.lang})
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              )}
+                            </>
                           )}
                         </select>
                       </div>

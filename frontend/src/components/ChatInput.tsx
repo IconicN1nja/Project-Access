@@ -119,7 +119,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   return (
     <div className="p-3 sm:p-4 bg-transparent relative z-10">
       <div className="max-w-3xl mx-auto">
-        
+
         {/* Listening Banner */}
         {isListening && (
           <motion.div
@@ -134,13 +134,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         )}
 
         <div
-          className={`rounded-2xl border bg-[#0E0E12]/85 backdrop-blur-2xl p-3 transition-all duration-200 shadow-[0_16px_40px_-10px_rgba(0,0,0,0.6)] flex items-end gap-2 ${
-            isListening
+          className={`rounded-2xl border bg-[#0E0E12]/85 backdrop-blur-2xl p-3 transition-all duration-200 shadow-[0_16px_40px_-10px_rgba(0,0,0,0.6)] flex items-end gap-2 ${isListening
               ? "border-rose-500/50 ring-2 ring-rose-500/30 shadow-[0_0_25px_rgba(244,63,94,0.3)]"
               : "border-white/10 focus-within:border-[#7C3AED]/50 focus-within:ring-1 focus-within:ring-[#7C3AED]/30 focus-within:shadow-[0_12px_40px_-10px_rgba(124,58,237,0.25)]"
-          }`}
+            }`}
         >
-          
+
           {/* Attach Button */}
           <button
             type="button"
@@ -167,11 +166,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             type="button"
             title={isListening ? "Stop listening" : "Start voice chat"}
             onClick={toggleVoiceInput}
-            className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mb-0.5 transition-all duration-200 ${
-              isListening
+            className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mb-0.5 transition-all duration-200 ${isListening
                 ? "bg-rose-500 text-white shadow-lg shadow-rose-900/50 animate-pulse"
                 : "btn-glass text-zinc-400 hover:text-white"
-            }`}
+              }`}
           >
             <Mic className={`w-3.5 h-3.5 ${isListening ? "text-white" : ""}`} />
           </button>
@@ -181,13 +179,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             onClick={() => handleTriggerSend()}
             disabled={!isGenerating && !hasText}
             title={isGenerating ? "Stop retrieval" : "Send (Enter)"}
-            className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 mb-0.5 transition-all duration-200 ${
-              isGenerating
+            className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 mb-0.5 transition-all duration-200 ${isGenerating
                 ? "bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-900/40"
                 : hasText
                   ? "btn-send-purple text-white pulse-purple-glow"
                   : "bg-white/[0.04] text-zinc-600 border border-white/5 cursor-not-allowed"
-            }`}
+              }`}
           >
             {isBursting ? (
               <motion.span

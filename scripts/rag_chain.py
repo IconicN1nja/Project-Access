@@ -831,20 +831,11 @@ class CriminalLawRAG:
         api_key: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Detects if query is in a non-English language.
-        If non-English, translates it to clear English for semantic Qdrant search.
-        If English, returns is_english=True with zero changes.
+        Detects if query is in a non-English language or Romanized regional language (e.g. Hinglish, Tanglish).
+        If non-English or Hinglish/Romanized, translates it to clear English for semantic Qdrant search.
+        If pure English, returns is_english=True.
         """
         if not query or len(query.strip()) == 0:
-            return {"is_english": True, "original_language": "English", "english_query": query}
-
-        import re
-        # Check if text contains non-ASCII characters (Devanagari, Tamil, Telugu, Bengali, Arabic, Cyrillic, CJK, etc.)
-        non_ascii_letters = re.findall(r'[^\x00-\x7F]', query)
-        is_pure_ascii = len(non_ascii_letters) == 0
-
-        # Fast-path for common ASCII English legal queries to eliminate LLM overhead on pure English queries
-        if is_pure_ascii and any(w in query.lower() for w in ["what", "how", "is", "under", "section", "bns", "bnss", "bsa", "bail", "court", "police", "arrest", "the", "for", "ipc"]):
             return {"is_english": True, "original_language": "English", "english_query": query}
 
         active_llm = llm if llm is not None else (self.llm_pool[0] if self.llm_pool and self.llm_pool[0] else None)
@@ -854,9 +845,13 @@ class CriminalLawRAG:
         system_prompt = (
             "You are a multilingual legal language detector and translator for Indian Criminal Law.\n"
             "Analyze the user's input query below:\n"
-            "1. Determine whether the query is written in English or a non-English language (e.g. Hindi, Tamil, Telugu, Bengali, Marathi, Gujarati, Malayalam, Kannada, Punjabi, Urdu, Spanish, French, German, etc.).\n"
-            "2. If it is in English, set \"is_english\": true, \"original_language\": \"English\", and \"english_query\": the exact original query text.\n"
-            "3. If it is in a non-English language, translate the question into clear, accurate English legal terminology for semantic vector retrieval in Indian law, and set \"is_english\": false, \"original_language\": name of the detected language (e.g., \"Hindi\"), and \"english_query\": translated English query.\n\n"
+            "1. Determine the language and script of the input query.\n"
+            "   - If the user wrote in Romanized Hindi/Hinglish (e.g., 'mene ek recording kri...'), set \"is_english\": false, \"original_language\": \"Hindi (Hinglish / Devanagari)\".\n"
+            "   - If the user wrote in Hindi (Devanagari), set \"is_english\": false, \"original_language\": \"Hindi\".\n"
+            "   - If the user wrote in Tamil, Telugu, Bengali, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Urdu, Spanish, French, German, etc., set \"is_english\": false and \"original_language\": name of the detected language.\n"
+            "   - ONLY set \"is_english\": true if the query is actual standard English.\n"
+            "2. If \"is_english\" is false, translate the query into clear, accurate English legal terminology for vector retrieval in Indian law, and set \"english_query\" to the English translation.\n"
+            "3. If \"is_english\" is true, set \"english_query\" to the exact original query text.\n\n"
             "Respond ONLY with a valid JSON object in this exact format:\n"
             "{\n"
             '  "is_english": boolean,\n'
@@ -920,10 +915,11 @@ class CriminalLawRAG:
             f"You are an expert legal translator specializing in Indian Criminal Law.\n"
             f"Translate the following legal answer into **{target_language}**.\n\n"
             f"STRICT TRANSLATION RULES:\n"
-            f"1. Preserve ALL Markdown structure: headers (#, ##), bold text (**bold**), bullet points, and tables (| col | col |).\n"
-            f"2. Keep statutory section citations clear and explicit in {target_language} (e.g. keep BNS, BNSS, BSA section numbers clear like 'Section 103 BNS' or 'भारतीय न्याय संहिता (BNS) की धारा 103').\n"
-            f"3. Ensure high legal precision and readability for native {target_language} speakers.\n"
-            f"4. Output ONLY the translated legal answer text with no meta comments."
+            f"1. Translate into clear, natural, grammatically correct {target_language} (if Hindi/Hinglish, output in clear Hindi script or Hinglish as appropriate for easy reading).\n"
+            f"2. Preserve ALL Markdown structure: headers (#, ##), bold text (**bold**), bullet points, and tables (| col | col |).\n"
+            f"3. Keep statutory section citations clear and explicit (e.g. 'Bharatiya Nyaya Sanhita, 2023 (BNS) की धारा 77' / 'Section 77 BNS').\n"
+            f"4. Ensure high legal precision, empathy, and readability for native/Hinglish speakers.\n"
+            f"5. Output ONLY the translated legal answer text with no meta comments."
         )
 
         try:
