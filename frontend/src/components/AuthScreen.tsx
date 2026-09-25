@@ -19,9 +19,9 @@ interface AuthScreenProps {
 
 export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
   const router = useRouter();
-  const [localMode, setLocalMode] = useState<"signin" | "signup" | "unverified">(
-    mode
-  );
+  const [localMode, setLocalMode] = useState<
+    "signin" | "signup" | "unverified"
+  >(mode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -134,7 +134,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
         }
       }
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "An unexpected error occurred";
+      const message =
+        err instanceof Error ? err.message : "An unexpected error occurred";
       setError(message);
     } finally {
       setIsLoading(false);
@@ -172,7 +173,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
         router.push("/");
       }, 1500);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Invalid or expired verification code";
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Invalid or expired verification code";
       setError(message);
     } finally {
       setIsLoading(false);

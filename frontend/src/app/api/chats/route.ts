@@ -17,12 +17,10 @@ export async function GET() {
 
     return NextResponse.json({ success: true, chats });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Internal Server Error";
+    const message =
+      error instanceof Error ? error.message : "Internal Server Error";
     console.error("[GET CHATS API ERROR]", error);
-    return NextResponse.json(
-      { error: message },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -57,11 +55,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, chat: newChat });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Internal Server Error";
+    const message =
+      error instanceof Error ? error.message : "Internal Server Error";
     console.error("[POST CHAT API ERROR]", error);
-    return NextResponse.json(
-      { error: message },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

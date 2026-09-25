@@ -220,7 +220,9 @@ export const MessageItem: React.FC<MessageItemProps> = ({
             {isSpeaking ? (
               <>
                 <VolumeX className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-                <span className="text-[10px] text-emerald-400 font-medium">Speaking...</span>
+                <span className="text-[10px] text-emerald-400 font-medium">
+                  Speaking...
+                </span>
               </>
             ) : (
               <Volume2 className="w-3.5 h-3.5" />

@@ -96,7 +96,10 @@ export class IntelligenceEngine {
     }
   }
 
-  private generateLocalResponse(query: string, isVoice?: boolean): {
+  private generateLocalResponse(
+    query: string,
+    isVoice?: boolean,
+  ): {
     answer: string;
     sources: SourceDoc[];
   } {
@@ -110,8 +113,8 @@ export class IntelligenceEngine {
             section_number: "Substantive Code",
             snippet: "Codified statutory offences and penal guidelines.",
             score: 0.96,
-          }
-        ]
+          },
+        ],
       };
     }
 
@@ -142,21 +145,24 @@ Regarding your inquiry: **"${query}"**
           title: "Bharatiya Nyaya Sanhita (BNS)",
           act_title: "Bharatiya Nyaya Sanhita, 2023",
           section_number: "Substantive Code",
-          snippet: "Codified statutory offences, penal definitions, and sentencing guidelines.",
+          snippet:
+            "Codified statutory offences, penal definitions, and sentencing guidelines.",
           score: 0.96,
         },
         {
           title: "Bharatiya Nagarik Suraksha Sanhita (BNSS)",
           act_title: "Bharatiya Nagarik Suraksha Sanhita, 2023",
           section_number: "Procedural Code",
-          snippet: "Statutory framework governing arrest, bail, investigation protocols, and court jurisdiction.",
+          snippet:
+            "Statutory framework governing arrest, bail, investigation protocols, and court jurisdiction.",
           score: 0.94,
         },
         {
           title: "Bharatiya Sakshya Adhiniyam (BSA)",
           act_title: "Bharatiya Sakshya Adhiniyam, 2023",
           section_number: "Evidence Law",
-          snippet: "Admissibility of electronic records, certificates under Section 63, and evidentiary burden.",
+          snippet:
+            "Admissibility of electronic records, certificates under Section 63, and evidentiary burden.",
           score: 0.91,
         },
       ],

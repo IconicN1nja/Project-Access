@@ -5,7 +5,8 @@ export interface VoiceSettings {
 }
 
 export const getSavedVoiceSettings = (): VoiceSettings => {
-  if (typeof window === "undefined") return { voiceURI: "", pitch: 1.0, rate: 1.0 };
+  if (typeof window === "undefined")
+    return { voiceURI: "", pitch: 1.0, rate: 1.0 };
   try {
     const saved = localStorage.getItem("project_access_voice_settings");
     if (saved) return JSON.parse(saved);
@@ -16,7 +17,10 @@ export const getSavedVoiceSettings = (): VoiceSettings => {
 export const saveVoiceSettings = (settings: VoiceSettings) => {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem("project_access_voice_settings", JSON.stringify(settings));
+    localStorage.setItem(
+      "project_access_voice_settings",
+      JSON.stringify(settings),
+    );
   } catch {}
 };
 
@@ -82,12 +86,14 @@ export const playAudioOrSpeech = ({
     let matchedVoice = null;
     if (settings.voiceURI) {
       matchedVoice = voices.find(
-        (v) => v.voiceURI === settings.voiceURI || v.name === settings.voiceURI
+        (v) => v.voiceURI === settings.voiceURI || v.name === settings.voiceURI,
       );
     }
     if (!matchedVoice && langCode !== "en-IN") {
       const prefix = langCode.slice(0, 2);
-      matchedVoice = voices.find((v) => v.lang.toLowerCase().startsWith(prefix));
+      matchedVoice = voices.find((v) =>
+        v.lang.toLowerCase().startsWith(prefix),
+      );
     }
     if (matchedVoice) {
       utterance.voice = matchedVoice;

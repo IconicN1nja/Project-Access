@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     if (!text || typeof text !== "string") {
       return NextResponse.json(
         { error: "Text string is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
           error: "OPENAI_API_KEY is not configured in .env file",
           fallback: true,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
       console.warn("OpenAI Speech API error:", errText);
       return NextResponse.json(
         { error: `OpenAI Speech API error: ${errText}`, fallback: true },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -74,6 +74,9 @@ export async function POST(req: Request) {
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Internal Server Error";
-    return NextResponse.json({ error: message, fallback: true }, { status: 500 });
+    return NextResponse.json(
+      { error: message, fallback: true },
+      { status: 500 },
+    );
   }
 }

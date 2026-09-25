@@ -18,7 +18,9 @@ export const AISpeakingOverlay: React.FC<AISpeakingOverlayProps> = ({
   spokenCharIndex,
   onStop,
 }) => {
-  const [systemVoices, setSystemVoices] = React.useState<SpeechSynthesisVoice[]>([]);
+  const [systemVoices, setSystemVoices] = React.useState<
+    SpeechSynthesisVoice[]
+  >([]);
   const [selectedVoiceURI, setSelectedVoiceURI] = React.useState<string>("");
 
   React.useEffect(() => {
@@ -69,17 +71,18 @@ export const AISpeakingOverlay: React.FC<AISpeakingOverlayProps> = ({
           animate={{ opacity: 1, backdropFilter: "blur(24px)" }}
           exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          className="fixed inset-0 z-50 bg-[#060A0E]/80 backdrop-blur-2xl flex flex-col items-center justify-between p-6 sm:p-10 select-none overflow-hidden"
-        >
+          className="fixed inset-0 z-50 bg-[#060A0E]/80 backdrop-blur-2xl flex flex-col items-center justify-between p-6 sm:p-10 select-none overflow-hidden">
           {/* Top Status Header & Voice Selector */}
           <motion.div
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.1 }}
-            className="flex items-center gap-3 flex-wrap justify-center"
-          >
+            className="flex items-center gap-3 flex-wrap justify-center">
             <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-medium backdrop-blur-md shadow-[0_0_20px_rgba(16,185,129,0.2)]">
-              <Sparkles className="w-4 h-4 text-emerald-400 animate-spin" style={{ animationDuration: "6s" }} />
+              <Sparkles
+                className="w-4 h-4 text-emerald-400 animate-spin"
+                style={{ animationDuration: "6s" }}
+              />
               <span>Project Access AI Speaking</span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
             </div>
@@ -91,10 +94,12 @@ export const AISpeakingOverlay: React.FC<AISpeakingOverlayProps> = ({
                 <select
                   value={selectedVoiceURI}
                   onChange={handleVoiceChange}
-                  className="bg-transparent text-zinc-200 text-xs border-0 focus:outline-none cursor-pointer max-w-[200px] sm:max-w-[280px] truncate font-medium"
-                >
+                  className="bg-transparent text-zinc-200 text-xs border-0 focus:outline-none cursor-pointer max-w-[200px] sm:max-w-[280px] truncate font-medium">
                   {systemVoices.map((v) => (
-                    <option key={v.voiceURI} value={v.voiceURI} className="bg-[#0E171D] text-white">
+                    <option
+                      key={v.voiceURI}
+                      value={v.voiceURI}
+                      className="bg-[#0E171D] text-white">
                       {v.name} ({v.lang})
                     </option>
                   ))}
@@ -106,7 +111,10 @@ export const AISpeakingOverlay: React.FC<AISpeakingOverlayProps> = ({
           {/* Center Graphic: Pulsing AI Audio Orb & Waveforms */}
           <div className="relative my-auto flex flex-col items-center justify-center">
             {/* Outer Expanding Waves */}
-            <div className="absolute w-64 h-64 sm:w-80 sm:h-80 rounded-full bg-emerald-500/10 border border-emerald-500/20 animate-ping pointer-events-none" style={{ animationDuration: "3s" }} />
+            <div
+              className="absolute w-64 h-64 sm:w-80 sm:h-80 rounded-full bg-emerald-500/10 border border-emerald-500/20 animate-ping pointer-events-none"
+              style={{ animationDuration: "3s" }}
+            />
             <div className="absolute w-48 h-48 sm:w-60 sm:h-60 rounded-full bg-teal-500/15 border border-teal-500/30 pointer-events-none blur-sm" />
 
             {/* Main Glowing AI Sphere */}
@@ -119,9 +127,12 @@ export const AISpeakingOverlay: React.FC<AISpeakingOverlayProps> = ({
                   "0 0 40px rgba(16,185,129,0.4), inset 0 0 25px rgba(255,255,255,0.6)",
                 ],
               }}
-              transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
-              className="w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600 p-1 flex items-center justify-center relative shadow-[0_0_60px_rgba(16,185,129,0.5)] cursor-pointer"
-            >
+              transition={{
+                repeat: Infinity,
+                duration: 2.5,
+                ease: "easeInOut",
+              }}
+              className="w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600 p-1 flex items-center justify-center relative shadow-[0_0_60px_rgba(16,185,129,0.5)] cursor-pointer">
               <div className="w-full h-full rounded-full bg-[#081216]/90 backdrop-blur-md flex items-center justify-center relative overflow-hidden">
                 {/* Audio Wave Soundbars */}
                 <div className="flex items-center gap-1.5">
@@ -146,8 +157,7 @@ export const AISpeakingOverlay: React.FC<AISpeakingOverlayProps> = ({
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="mt-8 sm:mt-10 max-w-2xl mx-auto px-6 py-5 rounded-3xl bg-[#0C151B]/85 border border-white/10 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_1px_rgba(255,255,255,0.1)] text-center"
-            >
+              className="mt-8 sm:mt-10 max-w-2xl mx-auto px-6 py-5 rounded-3xl bg-[#0C151B]/85 border border-white/10 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_1px_rgba(255,255,255,0.1)] text-center">
               <p className="text-base sm:text-lg md:text-xl font-sans leading-relaxed tracking-normal font-normal">
                 {/* Spoken Part: Bright White */}
                 <span className="text-white font-medium drop-shadow-[0_2px_12px_rgba(255,255,255,0.4)] transition-colors duration-200">
@@ -167,13 +177,11 @@ export const AISpeakingOverlay: React.FC<AISpeakingOverlayProps> = ({
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.25 }}
-            className="mb-2"
-          >
+            className="mb-2">
             <button
               type="button"
               onClick={onStop}
-              className="btn-glass px-6 py-2.5 rounded-full flex items-center gap-2.5 text-xs sm:text-sm font-medium text-rose-300 hover:text-white border-rose-500/30 hover:border-rose-500/60 bg-rose-500/10 hover:bg-rose-500/20 shadow-[0_4px_20px_rgba(244,63,94,0.2)] transition-all cursor-pointer"
-            >
+              className="btn-glass px-6 py-2.5 rounded-full flex items-center gap-2.5 text-xs sm:text-sm font-medium text-rose-300 hover:text-white border-rose-500/30 hover:border-rose-500/60 bg-rose-500/10 hover:bg-rose-500/20 shadow-[0_4px_20px_rgba(244,63,94,0.2)] transition-all cursor-pointer">
               <Square className="w-4 h-4 fill-current text-rose-400" />
               <span>Stop AI Speaking</span>
             </button>
