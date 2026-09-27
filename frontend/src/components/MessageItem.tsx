@@ -14,6 +14,7 @@ import {
   Volume2,
   VolumeX,
   AlertCircle,
+  Sparkles,
 } from "lucide-react";
 
 interface MessageItemProps {
@@ -21,6 +22,73 @@ interface MessageItemProps {
   isStreaming?: boolean;
   onCopy: (text: string) => void;
   onRegenerate?: (id: string) => void;
+}
+
+// Separate top direct answer section from the main body
+function splitDirectAnswer(content: string) {
+  if (!content) return { directAnswer: null, body: "" };
+
+  const trimmed = content.trim();
+
+  // 1. Explicit heading match (e.g. ### Direct Legal Summary, ### Direct Answer, **Direct Answer:**)
+  const explicitMatch = trimmed.match(
+    /^(?:#{1,4}\s*(?:⚡\s*|⚖️\s*)?(?:Direct Legal Summary|Direct Answer|Executive Summary|Key Summary|Summary)[:\s]*|\*\*(?:Direct Legal Summary|Direct Answer|Executive Summary|Key Summary|Summary):\*\*\s*)/i,
+  );
+
+  if (explicitMatch) {
+    const afterHeader = trimmed.slice(explicitMatch[0].length);
+    const nextSectionIdx = afterHeader.search(
+      /\n\s*(?:#{1,6}\s+|---|___|\*\*\*|\|)/,
+    );
+    if (nextSectionIdx !== -1) {
+      return {
+        directAnswer: afterHeader.slice(0, nextSectionIdx).trim(),
+        body: afterHeader.slice(nextSectionIdx).trim(),
+      };
+    } else {
+      return {
+        directAnswer: afterHeader.trim(),
+        body: "",
+      };
+    }
+  }
+
+  // 2. Implicit opening block: Text before the first markdown heading (e.g. ### Statutes to Refer or ## Applying the law)
+  const firstHeadingIdx = trimmed.search(
+    /\n\s*(?:#{1,6}\s+|---|___|\*\*\*|\|)/,
+  );
+  if (firstHeadingIdx !== -1) {
+    const topBlock = trimmed.slice(0, firstHeadingIdx).trim();
+    const rest = trimmed.slice(firstHeadingIdx).trim();
+    if (
+      topBlock &&
+      topBlock.length > 10 &&
+      topBlock.length < 1200 &&
+      !topBlock.startsWith("#") &&
+      !topBlock.startsWith("|")
+    ) {
+      return {
+        directAnswer: topBlock,
+        body: rest,
+      };
+    }
+  }
+
+  // 3. Short single-paragraph message without headings
+  if (
+    trimmed.length > 0 &&
+    trimmed.length <= 400 &&
+    !trimmed.includes("\n\n") &&
+    !trimmed.startsWith("#") &&
+    !trimmed.startsWith("|")
+  ) {
+    return {
+      directAnswer: trimmed,
+      body: "",
+    };
+  }
+
+  return { directAnswer: null, body: content };
 }
 
 export const MessageItem: React.FC<MessageItemProps> = ({
@@ -133,6 +201,48 @@ export const MessageItem: React.FC<MessageItemProps> = ({
     );
   }
 
+  const { directAnswer, body } = splitDirectAnswer(message.content);
+
+  const markdownComponents = {
+    code({ node, inline, className, children, ...props }: any) {
+      const match = /language-(\w+)/.exec(className || "");
+      const codeString = String(children).replace(/\n$/, "");
+      if (!inline && match) {
+        const codeIdx = Math.random();
+        return (
+          <div className="code-block-wrapper">
+            <div className="code-block-header">
+              <span>{match[1]}</span>
+              <button
+                onClick={() => handleCopyCode(codeString, codeIdx as any)}
+                className="btn-copy-code flex items-center gap-1 px-1.5 py-0.5 rounded text-xs text-[var(--color-text-quaternary)] hover:text-emerald-400 hover:bg-[var(--color-interactive-secondary-hover)] transition-colors">
+                {copiedCodeIndex === (codeIdx as any) ? (
+                  <>
+                    <Check className="w-3 h-3 text-emerald-400" />
+                    <span className="text-emerald-400">Copied</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3 h-3" />
+                    <span>Copy</span>
+                  </>
+                )}
+              </button>
+            </div>
+            <pre>
+              <code>{children}</code>
+            </pre>
+          </div>
+        );
+      }
+      return (
+        <code className={className} {...props}>
+          {children}
+        </code>
+      );
+    },
+  };
+
   return (
     <div className="flex items-start gap-3 group">
       {/* Bot Icon */}
@@ -167,57 +277,42 @@ export const MessageItem: React.FC<MessageItemProps> = ({
           </details>
         )}
 
-        {/* Markdown Content with Original prose-chat Styling */}
-        <div className="prose-chat text-[var(--color-text-secondary)] py-1">
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeRaw]}
-            components={{
-              code({ node, inline, className, children, ...props }: any) {
-                const match = /language-(\w+)/.exec(className || "");
-                const codeString = String(children).replace(/\n$/, "");
-                if (!inline && match) {
-                  const codeIdx = Math.random();
-                  return (
-                    <div className="code-block-wrapper">
-                      <div className="code-block-header">
-                        <span>{match[1]}</span>
-                        <button
-                          onClick={() =>
-                            handleCopyCode(codeString, codeIdx as any)
-                          }
-                          className="btn-copy-code flex items-center gap-1 px-1.5 py-0.5 rounded text-xs text-[var(--color-text-quaternary)] hover:text-emerald-400 hover:bg-[var(--color-interactive-secondary-hover)] transition-colors">
-                          {copiedCodeIndex === (codeIdx as any) ? (
-                            <>
-                              <Check className="w-3 h-3 text-emerald-400" />
-                              <span className="text-emerald-400">Copied</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-3 h-3" />
-                              <span>Copy</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-                      <pre>
-                        <code>{children}</code>
-                      </pre>
-                    </div>
-                  );
-                }
-                return (
-                  <code className={className} {...props}>
-                    {children}
-                  </code>
-                );
-              },
-            }}>
-            {formatContent(message.content)}
-          </ReactMarkdown>
+        {/* Top Direct Answer Section Highlighted Box (White Border, Dark Background) */}
+        {directAnswer && (
+          <div className="relative overflow-hidden my-3 p-4 sm:p-5 rounded-2xl bg-[#0D151B]/95 border border-white/80 shadow-[0_0_20px_rgba(255,255,255,0.08)] backdrop-blur-xl text-zinc-100">
+            {/* <div className="flex items-center justify-between gap-2 mb-3 pb-2 border-b border-white/15">
+              <span className="text-xs font-bold text-emerald-400 tracking-wider uppercase">
+                Direct Legal Answer
+              </span>
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-white/10 border border-white/20 text-zinc-200">
+                Key Summary
+              </span>
+            </div> */}
 
-          {isStreaming && <span className="cursor-blink" />}
-        </div>
+            <div className="prose-chat text-zinc-100 text-sm leading-relaxed font-medium">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeRaw]}
+                components={markdownComponents}>
+                {formatContent(directAnswer)}
+              </ReactMarkdown>
+              {isStreaming && !body && <span className="cursor-blink" />}
+            </div>
+          </div>
+        )}
+
+        {/* Remaining Markdown Body */}
+        {body && (
+          <div className="prose-chat text-[var(--color-text-secondary)] py-1">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeRaw]}
+              components={markdownComponents}>
+              {formatContent(body)}
+            </ReactMarkdown>
+            {isStreaming && <span className="cursor-blink" />}
+          </div>
+        )}
 
 
 
@@ -227,8 +322,8 @@ export const MessageItem: React.FC<MessageItemProps> = ({
             title={isSpeaking ? "Stop reading aloud" : "Read aloud (Voice)"}
             onClick={toggleSpeech}
             className={`p-1 rounded text-xs transition-colors flex items-center gap-1 ${isSpeaking
-                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-                : "hover:bg-[var(--color-surface-hover)] hover:text-emerald-400"
+              ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
+              : "hover:bg-[var(--color-surface-hover)] hover:text-emerald-400"
               }`}>
             {isSpeaking ? (
               <>

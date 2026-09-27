@@ -169,10 +169,11 @@ CRITICAL LEGAL MANDATE:
    - If a query involves both civil and criminal aspects (e.g. fraud involving both civil breach of contract & criminal cheating under BNS, or domestic violence involving both protection orders & criminal harassment), explicitly differentiate between Civil Law actions and Criminal Law actions for the user without altering the legal meaning of any statute.
 
 9. NO HTML TAGS: Do NOT output HTML tags (<br>, <br/>). Use standard Markdown formatting.
-10. MANDATORY OPENING DIRECT ANSWER: ALWAYS start your response with a concise, direct 2 to 3 line legal summary answering the user's query upfront.
+10. MANDATORY OPENING DIRECT ANSWER: ALWAYS start your response with a concise, direct 2 to 3 line legal summary answering the user's query upfront under the heading "### Direct Legal Summary".
 11. STATUTES TO REFER TABLE: Whenever you include a "Statutes to Refer" table, include dedicated columns for **Domain** (Civil / Criminal), **Act & Section**, and **Relevance to the facts** (e.g. `| Domain | Act & Section | Title | Relevance to the facts |`).
 12. HEADING NAMING PROTOCOL:
    If your response includes any of the following section headings or table headers, use these exact titles:
+   - "Direct Legal Summary" (for opening direct summary section)
    - "Statutes to Refer" (for statutory framework / table of statutes)
    - "Applying the law to your query" (for legal analysis)
    - "What can the victim do now as per the procedural laws" (for procedural consequences / actions)
@@ -180,7 +181,11 @@ CRITICAL LEGAL MANDATE:
    Do NOT alter your natural response structure, style, or content—only use these heading names when those sections are generated.
 
 13. DIRECT ANSWER MANDATE: Provide a comprehensive, full legal answer directly covering all applicable legal frameworks (e.g. Hindu Marriage Act, Special Marriage Act, Muslim Personal Law, etc., for personal matters) without stopping or pausing.
-14. STRICT NO CLARIFYING QUESTIONS RULE: You are STRICTLY FORBIDDEN from asking clarifying questions, generating a "Clarifying Questions" section, or asking the user for missing details. ALWAYS provide a complete, comprehensive, and exhaustive legal response covering all personal laws and scenarios directly in your answer.
+15. TARGET RESPONSE LANGUAGE MANDATE: You MUST write your ENTIRE final response (including headings, explanations, direct summary, tables, and bullet points) in **{target_language}**.
+   - If target_language is "Hindi", write in clear Hindi (Devanagari script).
+   - If target_language is "Hinglish", write in Hinglish (Hindi written in Roman English script).
+   - If target_language is "Bengali", "Tamil", "Telugu", "Marathi", "Gujarati", "Kannada", "Malayalam", "Punjabi", "French", "Spanish", "German", write in that respective language.
+   - Keep statutory Act names and section numbers recognisable (e.g. Bharatiya Nyaya Sanhita, BNS, BNSS, BSA, POCSO).
 ================================================================================
 
 --- RECENT CONVERSATION HISTORY ---
@@ -192,11 +197,12 @@ CRITICAL LEGAL MANDATE:
 -------------------------------
 
 Question: {question}
+Target Response Language: {target_language}
 Expected Legal Concepts: {concepts}
 
 Instructions:
-1. ALWAYS start your response with a clear, concise 2 to 3 line direct summary answering the query upfront.
-2. Provide a complete, comprehensive legal breakdown covering all relevant legal frameworks directly. DO NOT ask clarifying questions or output a Clarifying Questions section.
+1. ALWAYS start your response with "### Direct Legal Summary" followed by a clear, concise 2 to 3 line direct summary answering the query upfront in {target_language}.
+2. Provide a complete, comprehensive legal breakdown covering all relevant legal frameworks directly in {target_language}. DO NOT ask clarifying questions or output a Clarifying Questions section.
 3. Analyze the question carefully using retrieved context and conversation history. State clearly whether the matter falls under Civil Law, Criminal Law, or both.
 4. Draw upon retrieved context and your authoritative knowledge of Indian Criminal (BNS, BNSS, BSA) and Civil Laws (CPC, ICA, TPA, HMA, SMA, CPA, etc.) to provide a complete, sound, and accurate answer.
 5. Always cite Act Names and Section Numbers clearly (e.g. "Bharatiya Nyaya Sanhita, 2023 (BNS), Section 103" or "Hindu Marriage Act, 1955, Section 13").
@@ -1219,6 +1225,7 @@ class CriminalLawRAG:
                     question=effective_question,
                     concepts=concepts_str,
                     chat_history=formatted_chat_history,
+                    target_language=target_lang,
                 )
                 response = client.chat.completions.create(
                     messages=[{"role": "user", "content": prompt_text}],
@@ -1227,20 +1234,21 @@ class CriminalLawRAG:
                     max_tokens=4096,
                 )
                 answer = response.choices[0].message.content
-                print(f"[Generation] Final answer generated successfully")
+                print(f"[Generation] Final answer generated successfully in {target_lang}")
             except Exception as e:
                 answer = "Something went wrong. Please try again."
                 print(f"[Generation] Failed to generate answer: {e}")
         else:
             try:
-                print(f"[RAG Pipeline] Generating LLM response using Groq ({self.model_name})...")
+                print(f"[RAG Pipeline] Generating LLM response using Groq ({self.model_name}) in {target_lang}...")
                 answer = chain.invoke({
                     "context": formatted_context,
                     "question": effective_question,
                     "concepts": concepts_str,
                     "chat_history": formatted_chat_history,
+                    "target_language": target_lang,
                 })
-                print(f"[Generation] Final answer generated successfully")
+                print(f"[Generation] Final answer generated successfully in {target_lang}")
             except Exception as e:
                 print(f"[RAG Pipeline] LangChain Groq invoke failed ({e}), falling back to direct Groq SDK...")
                 try:
@@ -1251,6 +1259,7 @@ class CriminalLawRAG:
                         question=effective_question,
                         concepts=concepts_str,
                         chat_history=formatted_chat_history,
+                        target_language=target_lang,
                     )
                     response = client.chat.completions.create(
                         messages=[{"role": "user", "content": prompt_text}],
@@ -1259,9 +1268,10 @@ class CriminalLawRAG:
                         max_tokens=4096,
                     )
                     answer = response.choices[0].message.content
-                    print(f"[Generation] Final answer generated successfully")
+                    print(f"[Generation] Final answer generated successfully in {target_lang}")
                 except Exception as inner_e:
                     answer = "Something went wrong. Please try again."
+                    print(f"[Generation] Failed to generate answer: {inner_e}")
                     print(f"[Generation] Failed to generate answer: {inner_e}")
 
         # Post-generation guarantee: Sanitize any remaining IPC/CrPC leakage and strip any clarifying questions

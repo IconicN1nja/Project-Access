@@ -42,6 +42,9 @@ interface RightSidebarDockProps {
   user?: { id: string; name: string; email: string } | null;
   onLogout?: () => void;
   onSendMessage?: (query: string, isVoice?: boolean) => void;
+  isSaveEnabled?: boolean;
+  onToggleSave?: () => void;
+  onClearChat?: () => void;
 }
 
 export const RightSidebarDock: React.FC<RightSidebarDockProps> = ({
@@ -54,6 +57,9 @@ export const RightSidebarDock: React.FC<RightSidebarDockProps> = ({
   user,
   onLogout,
   onSendMessage,
+  isSaveEnabled = false,
+  onToggleSave,
+  onClearChat,
 }) => {
   const [activeRightPanel, setActiveRightPanel] = useState<
     "history" | "customize" | "settings" | "profile" | null
@@ -199,9 +205,17 @@ export const RightSidebarDock: React.FC<RightSidebarDockProps> = ({
     });
   };
 
-  const filteredHistoryChats = (chats || []).filter((c) =>
-    (c.title || "").toLowerCase().includes(historySearch.toLowerCase()),
-  );
+  const filteredHistoryChats = (chats || []).filter((c) => {
+    const q = historySearch.trim().toLowerCase();
+    if (!q) return true;
+    const titleMatch = (c.title || "").toLowerCase().includes(q);
+    const messageMatch = (c.messages || []).some(
+      (m) =>
+        (m.content || "").toLowerCase().includes(q) ||
+        (m.thinking || "").toLowerCase().includes(q),
+    );
+    return titleMatch || messageMatch;
+  });
 
   // Close panel on outside click
   useEffect(() => {
@@ -737,6 +751,61 @@ export const RightSidebarDock: React.FC<RightSidebarDockProps> = ({
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
+                  {/* Save Chat & History Preferences */}
+                  <div>
+                    <label className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider block mb-2">
+                      Chat & History Preferences
+                    </label>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-white/10">
+                        <div>
+                          <div className="text-zinc-200 font-medium flex items-center gap-1.5">
+                            <span>Save Chat in History</span>
+                            <span
+                              className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-bold ${
+                                isSaveEnabled
+                                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                                  : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                              }`}>
+                              {isSaveEnabled ? "ENABLED" : "DISABLED"}
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-zinc-400">
+                            Save chat sessions to history & database
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={onToggleSave}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                            isSaveEnabled
+                              ? "bg-emerald-500 text-zinc-950 hover:bg-emerald-400"
+                              : "bg-white/10 text-zinc-300 hover:bg-white/20"
+                          }`}>
+                          {isSaveEnabled ? "On" : "Off"}
+                        </button>
+                      </div>
+
+                      <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-white/10">
+                        <div>
+                          <div className="text-zinc-200 font-medium">
+                            Delete Current Conversation
+                          </div>
+                          <div className="text-[10px] text-zinc-400">
+                            Clear all messages in active session
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={onClearChat}
+                          className="px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5">
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* LLM Response Language Selector */}
                   <div>
                     <label className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider block mb-2">
@@ -1345,6 +1414,64 @@ export const RightSidebarDock: React.FC<RightSidebarDockProps> = ({
                 {/* Mobile Settings Tab */}
                 {mobileActiveTab === "settings" && (
                   <div className="p-4 space-y-4 text-xs">
+                    {/* Save Chat & History Preferences */}
+                    <div>
+                      <label className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider block mb-2">
+                        Chat & History Preferences
+                      </label>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-white/10">
+                          <div>
+                            <div className="text-zinc-200 font-medium flex items-center gap-1.5">
+                              <span>Save Chat in History</span>
+                              <span
+                                className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-bold ${
+                                  isSaveEnabled
+                                    ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                                    : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                                }`}>
+                                {isSaveEnabled ? "ENABLED" : "DISABLED"}
+                              </span>
+                            </div>
+                            <div className="text-[10px] text-zinc-400">
+                              Save chat sessions to history & database
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={onToggleSave}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                              isSaveEnabled
+                                ? "bg-emerald-500 text-zinc-950 hover:bg-emerald-400"
+                                : "bg-white/10 text-zinc-300 hover:bg-white/20"
+                            }`}>
+                            {isSaveEnabled ? "On" : "Off"}
+                          </button>
+                        </div>
+
+                        <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-white/10">
+                          <div>
+                            <div className="text-zinc-200 font-medium">
+                              Delete Current Conversation
+                            </div>
+                            <div className="text-[10px] text-zinc-400">
+                              Clear all messages in active session
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsMobileMenuOpen(false);
+                              onClearChat?.();
+                            }}
+                            className="px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5">
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Delete</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
                     <div>
                       <label className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider block mb-2">
                         AI Response Language

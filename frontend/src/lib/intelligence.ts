@@ -88,6 +88,7 @@ export class IntelligenceEngine {
         finalAnswer = "Something went wrong. Please try again.";
       }
 
+
       if (isErrorResponse) {
         if (onIsError) onIsError(true);
       } else {

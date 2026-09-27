@@ -1,23 +1,31 @@
 import mongoose, { Schema } from "mongoose";
 
-const SourceDocSchema = new Schema({
-  title: { type: String, required: true },
-  url: { type: String },
-  snippet: { type: String },
-  score: { type: Number },
-  act_title: { type: String },
-  section_number: { type: String },
-  section_title: { type: String },
-});
+const SourceDocSchema = new Schema(
+  {
+    title: { type: String, default: "Legal Reference" },
+    url: { type: String, default: "" },
+    snippet: { type: String, default: "" },
+    score: { type: Number, default: 0 },
+    act_title: { type: String, default: "" },
+    section_number: { type: String, default: "" },
+    section_title: { type: String, default: "" },
+    domain: { type: String, default: "" },
+  },
+  { _id: false },
+);
 
-const MessageSchema = new Schema({
-  id: { type: String, required: true },
-  role: { type: String, enum: ["user", "assistant"], required: true },
-  content: { type: String, default: "" },
-  timestamp: { type: Number, required: true },
-  thinking: { type: String },
-  sources: [SourceDocSchema],
-});
+const MessageSchema = new Schema(
+  {
+    id: { type: String, required: true },
+    role: { type: String, enum: ["user", "assistant"], required: true },
+    content: { type: String, default: "" },
+    timestamp: { type: Number, required: true },
+    thinking: { type: String, default: "" },
+    sources: [SourceDocSchema],
+    isError: { type: Boolean, default: false },
+  },
+  { _id: false },
+);
 
 const ChatSchema = new Schema(
   {

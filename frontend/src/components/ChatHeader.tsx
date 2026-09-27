@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, Bookmark } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface ChatHeaderProps {
@@ -9,11 +9,52 @@ interface ChatHeaderProps {
   onClear: () => void;
   onNewChat?: () => void;
   onOpenButtonSystemSheet?: () => void;
+  isSaveEnabled?: boolean;
+  onToggleSave?: () => void;
 }
 
-export const ChatHeader: React.FC<ChatHeaderProps> = ({ onClear, onNewChat }) => {
+export const ChatHeader: React.FC<ChatHeaderProps> = ({
+  onClear,
+  onNewChat,
+  isSaveEnabled = false,
+  onToggleSave,
+}) => {
   return (
     <div className="fixed top-5 right-5 sm:right-7 z-40 pointer-events-auto flex items-center gap-2">
+      {onToggleSave && (
+        <motion.button
+          onClick={onToggleSave}
+          title={
+            isSaveEnabled
+              ? "Save Chat History: ENABLED"
+              : "Save Chat History: DISABLED"
+          }
+          aria-label="Toggle Save Chat History"
+          whileHover={{ scale: 1.04, y: -1.5 }}
+          whileTap={{ scale: 0.96 }}
+          className={`h-[38px] px-3 sm:px-3.5 rounded-full border backdrop-blur-xl text-xs font-medium flex items-center gap-1.5 shadow-[0_4px_20px_rgba(0,0,0,0.35)] transition-all duration-200 cursor-pointer ${isSaveEnabled
+              ? "bg-emerald-950/80 border-emerald-500/50 text-emerald-300 hover:text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.25)]"
+              : "bg-[#0c1218]/85 border-white/10 text-zinc-400 hover:text-zinc-200 hover:border-white/20"
+            }`}
+        >
+          <Bookmark
+            className={`w-3.5 h-3.5 ${isSaveEnabled ? "text-emerald-400 fill-emerald-400/30" : "text-zinc-400"
+              }`}
+          />
+          <span className="hidden sm:inline font-medium text-[11.5px] tracking-wide flex items-center gap-1">
+            <span>Save Chat</span>
+            <span
+              className={`px-1.5 py-0.2 text-[9.5px] font-bold rounded-full ${isSaveEnabled
+                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                  : "bg-white/10 text-zinc-400"
+                }`}
+            >
+              {isSaveEnabled ? "ON" : "OFF"}
+            </span>
+          </span>
+        </motion.button>
+      )}
+
       {onNewChat && (
         <motion.button
           onClick={onNewChat}

@@ -34,6 +34,7 @@ import {
   Eye,
   Download,
   ExternalLink,
+  Bookmark,
 } from "lucide-react";
 import { IndiaMapBackground } from "./IndiaMapBackground";
 import { Chat } from "@/types";
@@ -49,6 +50,8 @@ interface HeroHomepageProps {
   onNewChat?: () => void;
   user?: { id: string; name: string; email: string } | null;
   onLogout?: () => void;
+  isSaveEnabled?: boolean;
+  onToggleSave?: () => void;
 }
 
 const STATUTE_MODES = [
@@ -118,6 +121,8 @@ export const HeroHomepage: React.FC<HeroHomepageProps> = ({
   onNewChat,
   user,
   onLogout,
+  isSaveEnabled = false,
+  onToggleSave,
 }) => {
   const isCompass = activeMode === "justice-compass";
   const modesList = isCompass ? COMPASS_GUIDANCE_MODES : STATUTE_MODES;
@@ -256,8 +261,41 @@ export const HeroHomepage: React.FC<HeroHomepageProps> = ({
 
   return (
     <div className="relative min-h-full w-full flex flex-col justify-between items-center select-none overflow-x-hidden p-4 sm:p-6 md:p-8 text-[#F5F5F0]">
-      {/* 1. Top Right Header: ReThink Pill matching exact level of Project Access & Justice Compass */}
+      {/* 1. Top Right Header: ReThink Pill & Save Chat toggle */}
       <header className="fixed top-5 right-5 sm:right-7 z-20 flex items-center gap-2">
+        {onToggleSave && (
+          <motion.button
+            type="button"
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={onToggleSave}
+            title={
+              isSaveEnabled
+                ? "Save Chat History: ENABLED"
+                : "Save Chat History: DISABLED"
+            }
+            className={`btn-glass h-10 px-3.5 rounded-full flex items-center gap-1.5 text-xs sm:text-[13px] font-medium transition-all cursor-pointer select-none ${isSaveEnabled
+                ? "bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.25)]"
+                : "bg-[#0C1418]/80 border border-white/10 text-zinc-400 hover:text-zinc-200 hover:border-white/20"
+              }`}
+          >
+            <Bookmark
+              className={`w-3.5 h-3.5 ${isSaveEnabled ? "text-emerald-400 fill-emerald-400/30" : "text-zinc-400"
+                }`}
+            />
+            <span className="hidden sm:inline font-medium text-[11.5px] tracking-wide flex items-center gap-1">
+              <span>Save Chat</span>
+              <span
+                className={`px-1.5 py-0.2 text-[9.5px] font-bold rounded-full ${isSaveEnabled
+                    ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                    : "bg-white/10 text-zinc-400"
+                  }`}
+              >
+                {isSaveEnabled ? "ON" : "OFF"}
+              </span>
+            </span>
+          </motion.button>
+        )}
         {/* ReThink Pill Button from Figma screenshot with boundary ripple effect */}
         <motion.button
           type="button"
@@ -402,11 +440,10 @@ export const HeroHomepage: React.FC<HeroHomepageProps> = ({
           transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
           className="w-full max-w-2xl mt-8 sm:mt-9 text-left relative z-10">
           <div
-            className={`relative rounded-3xl bg-[#0E161C]/85 border transition-all duration-300 backdrop-blur-2xl p-4 sm:p-5 ${
-              isFocused
+            className={`relative rounded-3xl bg-[#0E161C]/85 border transition-all duration-300 backdrop-blur-2xl p-4 sm:p-5 ${isFocused
                 ? "border-emerald-500/50 ring-1 ring-emerald-500/30 shadow-[0_20px_50px_-10px_rgba(16,185,129,0.25),0_4px_20px_rgba(0,0,0,0.6)]"
                 : "border-white/10 hover:border-white/15 shadow-[0_16px_45px_-10px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.1)]"
-            }`}>
+              }`}>
             {/* Listening status banner */}
             {isListening && (
               <div className="mb-3 flex items-center justify-center gap-2 py-1.5 px-3 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-medium backdrop-blur-md shadow-lg w-fit mx-auto animate-pulse">
@@ -456,11 +493,10 @@ export const HeroHomepage: React.FC<HeroHomepageProps> = ({
                   type="button"
                   title={isListening ? "Stop listening" : "Voice input"}
                   onClick={toggleVoiceInput}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-200 ${
-                    isListening
+                  className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-200 ${isListening
                       ? "bg-rose-500 text-white shadow-lg shadow-rose-900/50 animate-pulse"
                       : "btn-glass text-zinc-400 hover:text-white"
-                  }`}>
+                    }`}>
                   <Mic
                     className={`w-3.5 h-3.5 ${isListening ? "text-white" : ""}`}
                   />
@@ -496,11 +532,10 @@ export const HeroHomepage: React.FC<HeroHomepageProps> = ({
                               setSelectedMode(mode.id);
                               setIsModeDropdownOpen(false);
                             }}
-                            className={`w-full flex items-start gap-2.5 p-2 rounded-xl text-xs transition-colors text-left ${
-                              isSelected
+                            className={`w-full flex items-start gap-2.5 p-2 rounded-xl text-xs transition-colors text-left ${isSelected
                                 ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/35 font-medium"
                                 : "text-zinc-300 hover:bg-white/5 hover:text-white"
-                            }`}>
+                              }`}>
                             <Scale className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                             <div className="min-w-0">
                               <div className="font-medium">{mode.label}</div>
@@ -523,11 +558,10 @@ export const HeroHomepage: React.FC<HeroHomepageProps> = ({
                       activeFilter === "bare-act" ? null : "bare-act",
                     )
                   }
-                  className={`btn-glass btn-glass-pill px-3 py-1.5 flex items-center gap-1.5 text-xs transition-all ${
-                    activeFilter === "bare-act"
+                  className={`btn-glass btn-glass-pill px-3 py-1.5 flex items-center gap-1.5 text-xs transition-all ${activeFilter === "bare-act"
                       ? "border-emerald-500/60 bg-emerald-500/20 text-emerald-300 font-medium"
                       : "text-zinc-300 hover:text-white"
-                  }`}>
+                    }`}>
                   <BookOpen className="w-3.5 h-3.5 text-zinc-400" />
                   <span>Bare Act</span>
                 </button>
@@ -540,11 +574,10 @@ export const HeroHomepage: React.FC<HeroHomepageProps> = ({
                       activeFilter === "judgement" ? null : "judgement",
                     )
                   }
-                  className={`btn-glass btn-glass-pill px-3 py-1.5 flex items-center gap-1.5 text-xs transition-all ${
-                    activeFilter === "judgement"
+                  className={`btn-glass btn-glass-pill px-3 py-1.5 flex items-center gap-1.5 text-xs transition-all ${activeFilter === "judgement"
                       ? "border-emerald-500/60 bg-emerald-500/20 text-emerald-300 font-medium"
                       : "text-zinc-300 hover:text-white"
-                  }`}>
+                    }`}>
                   <Gavel className="w-3.5 h-3.5 text-zinc-400" />
                   <span>Judgement</span>
                 </button>
@@ -558,13 +591,12 @@ export const HeroHomepage: React.FC<HeroHomepageProps> = ({
                 title={
                   isGenerating ? "Stop retrieval" : "Submit situation (Enter)"
                 }
-                className={`relative w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center cursor-pointer select-none transition-all duration-200 ${
-                  isGenerating
+                className={`relative w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center cursor-pointer select-none transition-all duration-200 ${isGenerating
                     ? "bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-900/40"
                     : hasText
                       ? "btn-send-green text-white pulse-green-glow"
                       : "bg-white/[0.04] text-zinc-600 border border-white/5 cursor-not-allowed"
-                }`}>
+                  }`}>
                 {isBursting ? (
                   <motion.span
                     initial={{ scale: 0.5, opacity: 0 }}

@@ -10,6 +10,7 @@ import { MessageItem } from "@/components/MessageItem";
 import { ChatInput } from "@/components/ChatInput";
 import { HeroHomepage } from "@/components/HeroHomepage";
 import { ClearModal } from "@/components/Modals";
+import { LegalDisclaimerModal } from "@/components/LegalDisclaimerModal";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { Toast } from "@/components/ui/Toast";
 import { RightSidebarDock } from "@/components/RightSidebarDock";
@@ -57,10 +58,58 @@ export default function Home() {
     "project-access" | "justice-compass"
   >("project-access");
   const [isClearOpen, setIsClearOpen] = useState(false);
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
+  const [isSaveInChatEnabled, setIsSaveInChatEnabled] = useState(false);
   const [toast, setToast] = useState<{
     message: string;
     type?: "info" | "error";
   } | null>(null);
+
+  useEffect(() => {
+    if (!Storage.hasAcceptedDisclaimer()) {
+      setShowDisclaimer(true);
+    }
+    setIsSaveInChatEnabled(Storage.getSaveInChatEnabled());
+  }, []);
+
+  const handleAcceptDisclaimer = () => {
+    Storage.setDisclaimerAccepted();
+    setShowDisclaimer(false);
+  };
+
+  const handleToggleSaveInChat = async () => {
+    const nextVal = !isSaveInChatEnabled;
+    setIsSaveInChatEnabled(nextVal);
+    Storage.setSaveInChatEnabled(nextVal);
+
+    if (nextVal) {
+      showToast("Save Chat to History: ENABLED", "info");
+      if (activeChatId && activeChat && activeChat.messages.length > 0) {
+        if (!persistedChatIdsRef.current.has(activeChatId)) {
+          try {
+            const res = await fetch("/api/chats", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                id: activeChat.id,
+                title: activeChat.title,
+                pinned: activeChat.pinned,
+                messages: activeChat.messages,
+              }),
+            });
+            if (res.ok) {
+              persistedChatIdsRef.current.add(activeChatId);
+              showToast("Conversation saved to history", "info");
+            }
+          } catch {
+            // Failure handled
+          }
+        }
+      }
+    } else {
+      showToast("Save Chat to History: DISABLED (Incognito)", "info");
+    }
+  };
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -164,11 +213,13 @@ export default function Home() {
   // 3. Conversation Management
   const handleNewChat = () => {
     if (isGenerating) intelligence.abort();
+    if (activeChatId && !persistedChatIdsRef.current.has(activeChatId)) {
+      setChats((prev) => prev.filter((c) => c.id !== activeChatId));
+    }
     setActiveChatId(null);
     Storage.setActiveChatId(null);
     setInput("");
-    // Reset any pending save prompt so that a new chat will trigger the banner again
-    +setSavePromptChatId(null);
+    setSavePromptChatId(null);
   };
 
   const handleSelectChat = (id: string) => {
@@ -468,21 +519,38 @@ export default function Home() {
           });
         }
 
-        if (isNewChat) {
-          // Ask the user whether to persist this chat to MongoDB
-          setSavePromptChatId(chatId);
-        } else if (persistedChatIdsRef.current.has(chatId)) {
-          try {
-            await fetch(`/api/chats/${chatId}`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                title: workingTitle,
-                messages: finalMessages,
-              }),
-            });
-          } catch {
-            // Error saving final messages - will retry on next interaction
+        if (isSaveInChatEnabled) {
+          if (isNewChat || !persistedChatIdsRef.current.has(chatId)) {
+            try {
+              const res = await fetch("/api/chats", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  id: chatId,
+                  title: workingTitle,
+                  pinned: false,
+                  messages: finalMessages,
+                }),
+              });
+              if (res.ok) {
+                persistedChatIdsRef.current.add(chatId);
+              }
+            } catch {
+              // Error saving final messages
+            }
+          } else {
+            try {
+              await fetch(`/api/chats/${chatId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  title: workingTitle,
+                  messages: finalMessages,
+                }),
+              });
+            } catch {
+              // Error updating final messages
+            }
           }
         }
       },
@@ -650,6 +718,8 @@ export default function Home() {
               onNewChat={handleNewChat}
               user={user}
               onLogout={handleLogout}
+              isSaveEnabled={isSaveInChatEnabled}
+              onToggleSave={handleToggleSaveInChat}
             />
           </div>
         ) : (
@@ -658,6 +728,8 @@ export default function Home() {
               title={activeChat?.title || "Project Access"}
               onClear={() => setIsClearOpen(true)}
               onNewChat={handleNewChat}
+              isSaveEnabled={isSaveInChatEnabled}
+              onToggleSave={handleToggleSaveInChat}
             />
 
             {/* Messages Scroll Area */}
@@ -707,6 +779,9 @@ export default function Home() {
         user={user}
         onLogout={handleLogout}
         onSendMessage={(q, isVoice) => handleSendMessage(q, isVoice)}
+        isSaveEnabled={isSaveInChatEnabled}
+        onToggleSave={handleToggleSaveInChat}
+        onClearChat={() => setIsClearOpen(true)}
       />
 
       {/* Clear Modal */}
@@ -722,6 +797,12 @@ export default function Home() {
         text={speakingText}
         spokenCharIndex={spokenCharIndex}
         onStop={handleStopSpeech}
+      />
+
+      {/* Legal Disclaimer Modal */}
+      <LegalDisclaimerModal
+        isOpen={showDisclaimer}
+        onAccept={handleAcceptDisclaimer}
       />
 
       {/* Toast Notification */}

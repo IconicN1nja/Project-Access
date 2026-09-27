@@ -34,6 +34,8 @@ export const PROMPT_TEMPLATES: PromptTemplate[] = [
 const STORAGE_KEYS = {
   ACTIVE_CHAT: "project_access_active_chat_v3",
   RESPONSE_LANGUAGE: "project_access_response_language_v1",
+  DISCLAIMER_ACCEPTED: "project_access_disclaimer_accepted_v1",
+  SAVE_IN_CHAT: "project_access_save_in_chat_v1",
 };
 
 export const Storage = {
@@ -59,5 +61,25 @@ export const Storage = {
   setResponseLanguage: (lang: string): void => {
     if (typeof window === "undefined") return;
     localStorage.setItem(STORAGE_KEYS.RESPONSE_LANGUAGE, lang);
+  },
+
+  hasAcceptedDisclaimer: (): boolean => {
+    if (typeof window === "undefined") return true;
+    return localStorage.getItem(STORAGE_KEYS.DISCLAIMER_ACCEPTED) === "true";
+  },
+
+  setDisclaimerAccepted: (): void => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem(STORAGE_KEYS.DISCLAIMER_ACCEPTED, "true");
+  },
+
+  getSaveInChatEnabled: (): boolean => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem(STORAGE_KEYS.SAVE_IN_CHAT) === "true";
+  },
+
+  setSaveInChatEnabled: (enabled: boolean): void => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem(STORAGE_KEYS.SAVE_IN_CHAT, String(enabled));
   },
 };
