@@ -18,6 +18,7 @@ import { playAudioOrSpeech, stopActiveAudio } from "@/lib/voiceHelper";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
   const [user, setUser] = useState<{
     id: string;
     email: string;
@@ -72,6 +73,7 @@ export default function Home() {
         setActiveChatId(null);
         Storage.setActiveChatId(null);
         showToast("Logged out successfully");
+        router.push("/login");
       } else {
         showToast("Failed to log out", "error");
       }
@@ -79,6 +81,13 @@ export default function Home() {
       showToast("Error logging out", "error");
     }
   };
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isAuthLoading && !user) {
+      router.push("/login");
+    }
+  }, [isAuthLoading, user, router]);
 
   // 1. Initial Load
   useEffect(() => {
@@ -179,8 +188,8 @@ export default function Home() {
     try {
       const res = persistedChatIdsRef.current.has(id)
         ? await fetch(`/api/chats/${id}`, {
-            method: "DELETE",
-          })
+          method: "DELETE",
+        })
         : { ok: true };
       if (res.ok) {
         const updated = chats.filter((c) => c.id !== id);
@@ -356,10 +365,13 @@ export default function Home() {
     setInput("");
     setIsGenerating(true);
 
+    const savedLanguage = Storage.getResponseLanguage();
+
     await intelligence.streamResponse({
       query: textToSend,
       messages: workingMessages.slice(0, -1),
       isVoice: !!isVoice,
+      responseLanguage: savedLanguage,
       onThinking: (thinkingText) => {
         botMessage.thinking = thinkingText;
         setChats((prev) =>
@@ -403,20 +415,35 @@ export default function Home() {
           }),
         );
       },
+      onIsError: (isErr) => {
+        botMessage.isError = isErr;
+        setChats((prev) =>
+          prev.map((c) => {
+            if (c.id !== chatId) return c;
+            return {
+              ...c,
+              messages: c.messages.map((m) =>
+                m.id === botMessage.id ? { ...m, isError: isErr } : m,
+              ),
+            };
+          }),
+        );
+      },
       onDone: async () => {
         setIsGenerating(false);
         const finalMessages = workingMessages.map((m) =>
           m.id === botMessage.id
             ? {
-                ...m,
-                content: botMessage.content,
-                thinking: botMessage.thinking,
-                sources: botMessage.sources,
-              }
+              ...m,
+              content: botMessage.content,
+              thinking: botMessage.thinking,
+              sources: botMessage.sources,
+              isError: botMessage.isError,
+            }
             : m,
         );
 
-        if (isVoice) {
+        if (isVoice && !botMessage.isError) {
           setSpeakingText(botMessage.content);
           setSpokenCharIndex(0);
           setIsAISpeaking(true);
@@ -459,22 +486,19 @@ export default function Home() {
           }
         }
       },
-      onError: async (err: unknown) => {
+      onError: async () => {
         setIsGenerating(false);
-        const errMsg =
-          err instanceof Error
-            ? err.message
-            : (err as { message?: string })?.message ||
-              "Failed to generate response";
-        botMessage.content += `\n\n> ⚠️ **Error**: ${errMsg}`;
+        botMessage.isError = true;
+        botMessage.content = "Something went wrong. Please try again.";
         const finalMessages = workingMessages.map((m) =>
           m.id === botMessage.id
             ? {
-                ...m,
-                content: botMessage.content,
-                thinking: botMessage.thinking,
-                sources: botMessage.sources,
-              }
+              ...m,
+              content: "Something went wrong. Please try again.",
+              isError: true,
+              thinking: "",
+              sources: [],
+            }
             : m,
         );
         setChats((prev) =>
@@ -633,6 +657,7 @@ export default function Home() {
             <ChatHeader
               title={activeChat?.title || "Project Access"}
               onClear={() => setIsClearOpen(true)}
+              onNewChat={handleNewChat}
             />
 
             {/* Messages Scroll Area */}

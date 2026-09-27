@@ -33,6 +33,7 @@ export const PROMPT_TEMPLATES: PromptTemplate[] = [
 
 const STORAGE_KEYS = {
   ACTIVE_CHAT: "project_access_active_chat_v3",
+  RESPONSE_LANGUAGE: "project_access_response_language_v1",
 };
 
 export const Storage = {
@@ -48,5 +49,15 @@ export const Storage = {
     } else {
       localStorage.removeItem(STORAGE_KEYS.ACTIVE_CHAT);
     }
+  },
+
+  getResponseLanguage: (): string => {
+    if (typeof window === "undefined") return "English";
+    return localStorage.getItem(STORAGE_KEYS.RESPONSE_LANGUAGE) || "English";
+  },
+
+  setResponseLanguage: (lang: string): void => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem(STORAGE_KEYS.RESPONSE_LANGUAGE, lang);
   },
 };

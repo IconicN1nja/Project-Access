@@ -10,6 +10,9 @@ interface ChatInputProps {
   onSend: (textOverride?: string, isVoice?: boolean) => void;
   isGenerating: boolean;
   onStop: () => void;
+  showSaveBanner?: boolean;
+  onSaveChat?: () => void;
+  onDismissSave?: () => void;
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({
@@ -18,6 +21,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   onSend,
   isGenerating,
   onStop,
+  showSaveBanner,
+  onSaveChat,
+  onDismissSave,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<any>(null);

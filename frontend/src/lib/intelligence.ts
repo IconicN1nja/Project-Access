@@ -4,11 +4,13 @@ export interface StreamResponseOptions {
   query: string;
   messages: Message[];
   isVoice?: boolean;
+  responseLanguage?: string;
   onThinking?: (text: string) => void;
   onSources?: (sources: SourceDoc[]) => void;
   onChunk?: (chunk: string) => void;
   onDone?: () => void;
   onError?: (err: unknown) => void;
+  onIsError?: (isError: boolean) => void;
 }
 
 export class IntelligenceEngine {
@@ -26,11 +28,13 @@ export class IntelligenceEngine {
       query,
       messages,
       isVoice,
+      responseLanguage,
       onThinking,
       onSources,
       onChunk,
       onDone,
       onError,
+      onIsError,
     } = options;
     this.abortController = new AbortController();
     const signal = this.abortController.signal;
@@ -42,41 +46,59 @@ export class IntelligenceEngine {
 
       let finalAnswer = "";
       let finalSources: SourceDoc[] = [];
+      let isErrorResponse = false;
 
       try {
         const res = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query, messages, is_voice: Boolean(isVoice) }),
+          body: JSON.stringify({
+            query,
+            messages,
+            is_voice: Boolean(isVoice),
+            response_language: responseLanguage || "English",
+          }),
           signal,
         });
 
         if (res.ok) {
           const data = await res.json();
-          if (data.answer) {
+          if (data.isError || data.is_error) {
+            isErrorResponse = true;
+            finalAnswer = "Something went wrong. Please try again.";
+            finalSources = [];
+          } else if (data.answer) {
             finalAnswer = data.answer;
             finalSources = data.sources || [];
           }
+        } else {
+          isErrorResponse = true;
+          finalAnswer = "Something went wrong. Please try again.";
+          finalSources = [];
         }
       } catch (e: unknown) {
         if (e instanceof Error && e.name === "AbortError") throw e;
-        // Backend request failed, fall back to local response
+        isErrorResponse = true;
+        finalAnswer = "Something went wrong. Please try again.";
+        finalSources = [];
       }
 
-      // Fallback local intelligence if backend is temporarily unreachable
       if (!finalAnswer) {
-        const generated = this.generateLocalResponse(query, isVoice);
-        finalAnswer = generated.answer;
-        finalSources = generated.sources;
+        isErrorResponse = true;
+        finalAnswer = "Something went wrong. Please try again.";
       }
 
-      if (onSources && finalSources.length > 0) {
-        onSources(finalSources);
+      if (isErrorResponse) {
+        if (onIsError) onIsError(true);
+      } else {
+        if (onSources && finalSources.length > 0) {
+          onSources(finalSources);
+        }
       }
 
-      // Stream the response to UI in chunks of words (~8-9 words at a time) for even faster rendering
+      // Stream the response to UI in chunks of words
       const words = finalAnswer.split(/(\s+)/);
-      const chunkSize = 16; // Process 8 words and spaces at a time
+      const chunkSize = 16;
       for (let i = 0; i < words.length; i += chunkSize) {
         if (signal.aborted) return;
         const chunk = words.slice(i, i + chunkSize).join("");
@@ -89,6 +111,8 @@ export class IntelligenceEngine {
       if (err instanceof Error && err.name === "AbortError") {
         // Stream was intentionally aborted
       } else {
+        if (onIsError) onIsError(true);
+        if (onChunk) onChunk("Something went wrong. Please try again.");
         if (onError) onError(err);
       }
     } finally {

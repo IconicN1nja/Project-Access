@@ -134,7 +134,7 @@ export const DynamicIslandNav: React.FC<DynamicIslandNavProps> = ({
   return (
     <div
       ref={containerRef}
-      className="fixed top-5 left-5 sm:left-7 z-50 flex items-start gap-2.5">
+      className="fixed top-3.5 left-14 sm:left-16 md:left-7 md:top-5 z-50 flex items-start gap-2.5">
       {/* ===================================================
           COLUMN 1: PROJECT ACCESS PILL & DROPDOWN
           (Exact 8 items & subviews preserved without changes)
@@ -307,9 +307,13 @@ export const DynamicIslandNav: React.FC<DynamicIslandNavProps> = ({
                     whileHover={{ x: 4, scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => {
-                      alert(
-                        "Settings: Preferences, Model Parameters, and System Options.",
-                      );
+                      if (typeof window !== "undefined") {
+                        window.dispatchEvent(
+                          new CustomEvent("open-right-panel", {
+                            detail: "settings",
+                          }),
+                        );
+                      }
                     }}
                     className="btn-glass px-4 py-2.5 rounded-2xl flex items-center gap-3 text-xs sm:text-[13px] text-zinc-200 hover:text-white bg-[#0D151B]/85 border border-white/10 hover:border-white/20 backdrop-blur-2xl shadow-[0_6px_20px_rgba(0,0,0,0.5)] transition-all text-left">
                     <Settings className="w-4 h-4 text-zinc-400 shrink-0" />

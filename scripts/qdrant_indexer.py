@@ -21,7 +21,7 @@ load_dotenv()
 
 # Configuration
 COLLECTION_NAME = "criminal_laws"
-DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "criminal"))
+DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data"))
 DEFAULT_STORAGE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "qdrant_storage"))
 EMBEDDING_MODEL_NAME = "BAAI/bge-small-en-v1.5"
 

@@ -236,10 +236,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
           <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">
             Project Access
           </h1>
-          <p className="text-xs text-[var(--color-text-tertiary)] mt-1.5 max-w-xs">
+          {/* <p className="text-xs text-[var(--color-text-tertiary)] mt-1.5 max-w-xs">
             Indian Criminal Law statutory assistant and legal vector index RAG
             platform.
-          </p>
+          </p> */}
         </div>
 
         {/* Auth Card */}
@@ -299,13 +299,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
                   />
                 </div>
 
-                {/* Dev warning note */}
+                {/* Dev warning note
                 <div className="w-full p-2.5 rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-surface-secondary)] text-[var(--text-xs)] text-[var(--color-text-quaternary)] text-left font-mono">
                   <span className="font-semibold text-[var(--color-warning)] uppercase">
                     Dev Environment:
                   </span>{" "}
                   Check terminal logs for verification code.
-                </div>
+                </div> */}
 
                 <div className="w-full pt-2 space-y-3">
                   <button
@@ -344,7 +344,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
               </form>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
               <h2 className="text-lg font-semibold mb-2">
                 {localMode === "signin" ? "Welcome back" : "Create an account"}
               </h2>
@@ -361,7 +361,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
                     <input
                       id="name"
                       type="text"
-                      placeholder="Jane Doe"
+                      autoComplete="off"
+                      placeholder="Adarsh Sri"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="w-full pl-10 pr-3 py-2 text-sm rounded-lg border border-[var(--color-border-primary)] bg-transparent focus:outline-none focus:border-[var(--color-border-focus)] transition-colors"
@@ -381,6 +382,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
                   <input
                     id="email"
                     type="email"
+                    autoComplete="off"
                     placeholder="name@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -400,6 +402,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
                   <input
                     id="password"
                     type="password"
+                    autoComplete="new-password"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -420,6 +423,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ mode }) => {
                     <input
                       id="confirmPassword"
                       type="password"
+                      autoComplete="new-password"
                       placeholder="••••••••"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}

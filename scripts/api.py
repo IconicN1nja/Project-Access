@@ -32,9 +32,15 @@ except Exception as e:
 
 from typing import List, Dict, Any, Optional
 
+class QueryMessage(BaseModel):
+    role: str
+    content: str
+
 class QueryRequest(BaseModel):
     question: str
     is_voice: Optional[bool] = False
+    messages: Optional[List[QueryMessage]] = None
+    response_language: Optional[str] = "English"
 
 class QueryResponse(BaseModel):
     question: str
@@ -45,22 +51,38 @@ class QueryResponse(BaseModel):
 @app.post("/api/query", response_model=QueryResponse)
 def handle_query(payload: QueryRequest):
     if not rag:
-        raise HTTPException(status_code=500, detail="RAG Pipeline not initialized on the server.")
+        return QueryResponse(
+            question=payload.question,
+            answer="Something went wrong. Please try again.",
+            classified_collection="bns",
+            retrieved_docs=[]
+        )
     
     try:
-        print(f"\n[API] Received question (is_voice={payload.is_voice}): {payload.question}")
-        res = rag.answer_question(payload.question, is_voice=bool(payload.is_voice))
+        print(f"\n[API] Received question (is_voice={payload.is_voice}, lang={payload.response_language}, history_len={len(payload.messages) if payload.messages else 0}): {payload.question}")
+        history = [m.model_dump() for m in payload.messages] if payload.messages else None
+        res = rag.answer_question(
+            payload.question,
+            is_voice=bool(payload.is_voice),
+            chat_history=history,
+            response_language=payload.response_language,
+        )
         
         # Extract fields returned by answer_question
         return QueryResponse(
             question=res.get("question", payload.question),
-            answer=res.get("answer", ""),
+            answer=res.get("answer", "Something went wrong. Please try again."),
             classified_collection=res.get("classified_collection", "bns"),
             retrieved_docs=res.get("retrieved_docs", [])
         )
     except Exception as e:
         print(f"[API Error] Exception during RAG query: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        return QueryResponse(
+            question=payload.question,
+            answer="Something went wrong. Please try again.",
+            classified_collection="bns",
+            retrieved_docs=[]
+        )
 
 if __name__ == "__main__":
     import uvicorn

@@ -6,6 +6,7 @@ export interface SourceDoc {
   act_title?: string;
   section_number?: string;
   section_title?: string;
+  domain?: string;
 }
 
 export interface Message {
@@ -15,6 +16,7 @@ export interface Message {
   timestamp: number;
   thinking?: string;
   sources?: SourceDoc[];
+  isError?: boolean;
 }
 
 export interface Chat {

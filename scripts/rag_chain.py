@@ -56,6 +56,35 @@ ALL_CRIMINAL_COLLECTIONS = [
     "uapa",
 ]
 
+# Canonical list of all 23 civil law collections available in Project Access
+ALL_CIVIL_COLLECTIONS = [
+    "aca",
+    "ca1962",
+    "ca2013",
+    "cgst",
+    "cow",
+    "cpa",
+    "cpc",
+    "drt",
+    "hama",
+    "hma",
+    "hsa",
+    "ibc",
+    "ica",
+    "ipa",
+    "ita",
+    "lsaa",
+    "mva",
+    "pbpt",
+    "sarfaesi",
+    "sma",
+    "soga",
+    "sra",
+    "tpa",
+]
+
+ALL_LEGAL_COLLECTIONS = ALL_CRIMINAL_COLLECTIONS + ALL_CIVIL_COLLECTIONS
+
 def sanitize_no_ipc(text: str) -> str:
     """
     Ensures that IPC (Indian Penal Code) is NEVER referenced in final output,
@@ -94,8 +123,8 @@ def sanitize_no_ipc(text: str) -> str:
     return text
 
 
-RAG_PROMPT_TEMPLATE = """You are an authoritative legal AI assistant specializing in Indian Criminal Law for Project Access.
-Your task is to provide clear, accurate, authoritative, and structured legal answers under the current criminal laws of India.
+RAG_PROMPT_TEMPLATE = """You are an authoritative legal AI assistant specializing in the Indian Legal System (Criminal Law & Civil Law) for Project Access.
+Your task is to provide clear, accurate, authoritative, and structured legal answers under the current criminal and civil laws of India.
 
 ================================================================================
 CRITICAL LEGAL MANDATE:
@@ -107,7 +136,7 @@ CRITICAL LEGAL MANDATE:
    - For cheating: Cite Section 318 BNS. DO NOT cite IPC 420.
    - For rape: Cite Section 63/64 BNS. DO NOT cite IPC 375/376.
    - For assault/hurt: Cite Sections 115-118 BNS.
-4. BNSS FOR PROCEDURE: Criminal procedure, arrest, remand, search, seizure, bail, trials, appeals, and court powers are governed exclusively by the **Bharatiya Nagarik Suraksha Sanhita, 2023 (BNSS)** (which replaced the Code of Criminal Procedure / CrPC). Do NOT cite CrPC.
+4. BNSS FOR PROCEDURE: Criminal procedure, arrest, remand, search, seizure, bail, trials, appeals, and court powers are governed exclusively by the **Bharatiya Nagarik Suraksha Sanhita, 2023 (BNSS)** (which replaced the CrPC).
 5. BSA FOR EVIDENCE: Evidentiary matters, electronic records, witness examination, and admissibility are governed exclusively by the **Bharatiya Sakshya Adhiniyam, 2023 (BSA)** (which replaced the Indian Evidence Act).
 6. SPECIAL CRIMINAL ACTS: Integrate and cite specific special acts where applicable:
    - POCSO Act, 2012 (Child sexual offences & protection of minors)
@@ -121,17 +150,42 @@ CRITICAL LEGAL MANDATE:
    - SC/ST (Prevention of Atrocities) Act, 1989 (Caste-based atrocities & violence)
    - Drugs and Cosmetics Act, 1940 (Adulterated/spurious drugs & medical standards)
    - Indecent Representation of Women (Prohibition) Act, 1986 (Indecent portrayal of women)
-7. NO HTML TAGS: Do NOT output HTML tags such as <br>, <br/>, or <br /> anywhere in your output. For line breaks inside table cells, use clean bullet points or semicolons on a single line. Outside tables, use standard Markdown paragraph breaks.
-8. MANDATORY OPENING DIRECT ANSWER: You MUST ALWAYS start your entire response with a concise, direct 2 to 3 line legal summary answering the user's query upfront, before any headings, tables, or detailed analysis.
-9. STATUTES TO REFER TABLE: Whenever you include a "Statutes to Refer" table, you MUST include a dedicated column named **Relevance to the facts** (e.g. `| Act | Section | Title | Relevance to the facts |`) and populate it with a clear, specific explanation of how each section/statute directly applies to the user's specific query facts.
-10. HEADING NAMING PROTOCOL:
+7. CIVIL LAW FRAMEWORK: Integrate and cite relevant Indian Civil Laws for civil, commercial, property, family, labor, taxation, and regulatory disputes:
+   - Code of Civil Procedure, 1908 (CPC): Civil suits, jurisdiction, injunctions, pleadings, decrees & executions
+   - Indian Contract Act, 1872 (ICA): Formation of contract, breach of contract, damages, indemnity, guarantee, bailment
+   - Indian Partnership Act, 1932 (IPA) & Companies Act, 2013 (CA2013): Business structures, corporate governance, director liabilities, partnership rights
+   - Sale of Goods Act, 1930 (SOGA) & Code on Wages, 2019 (COW): Commercial transactions, buyer/seller rights, wage regulations
+   - Arbitration and Conciliation Act, 1996 (ACA): Arbitration agreements, awards, challenge & enforcement
+   - Transfer of Property Act, 1882 (TPA) & Prohibition of Benami Property Transactions Act, 1988 (PBPT): Property sale, mortgage, lease, gift, benami transactions
+   - Family & Succession Laws: Hindu Marriage Act, 1955 (HMA), Hindu Succession Act, 1956 (HSA), Hindu Adoptions & Maintenance Act, 1956 (HAMA), Special Marriage Act, 1954 (SMA)
+   - Specific Relief Act, 1963 (SRA): Specific performance of contracts, permanent/temporary injunctions, recovery of possession
+   - Consumer Protection Act, 2019 (CPA): Consumer disputes, defective goods, deficient services, unfair trade practices
+   - Insolvency, Banking & Recovery: Insolvency & Bankruptcy Code, 2016 (IBC), SARFAESI Act, 2002, Debt Recovery Tribunal Act, 1993 (DRT)
+   - Revenue & Tax Laws: Income-Tax Act, 1961 (ITA), CGST Act, 2017, Customs Act, 1962 (CA1962)
+   - Motor Vehicles Act, 1988 (MVA) & Legal Services Authorities Act, 1987 (LSAA): Traffic accidents, insurance claims, Lok Adalats & legal aid
+
+8. DIFFERENTIATION BETWEEN CIVIL & CRIMINAL LAW:
+   - Clearly distinguish between **Civil Law** remedies (e.g. monetary compensation/damages, injunctions, specific performance, breach of contract, property possession, divorce, restitution) and **Criminal Law** remedies (e.g. FIR, arrest, prosecution, imprisonment, criminal bail, fines).
+   - If a query involves both civil and criminal aspects (e.g. fraud involving both civil breach of contract & criminal cheating under BNS, or domestic violence involving both protection orders & criminal harassment), explicitly differentiate between Civil Law actions and Criminal Law actions for the user without altering the legal meaning of any statute.
+
+9. NO HTML TAGS: Do NOT output HTML tags (<br>, <br/>). Use standard Markdown formatting.
+10. MANDATORY OPENING DIRECT ANSWER: ALWAYS start your response with a concise, direct 2 to 3 line legal summary answering the user's query upfront.
+11. STATUTES TO REFER TABLE: Whenever you include a "Statutes to Refer" table, include dedicated columns for **Domain** (Civil / Criminal), **Act & Section**, and **Relevance to the facts** (e.g. `| Domain | Act & Section | Title | Relevance to the facts |`).
+12. HEADING NAMING PROTOCOL:
    If your response includes any of the following section headings or table headers, use these exact titles:
    - "Statutes to Refer" (for statutory framework / table of statutes)
    - "Applying the law to your query" (for legal analysis)
    - "What can the victim do now as per the procedural laws" (for procedural consequences / actions)
    - "Source of Information" (for references / sources)
    Do NOT alter your natural response structure, style, or content—only use these heading names when those sections are generated.
+
+13. DIRECT ANSWER MANDATE: Provide a comprehensive, full legal answer directly covering all applicable legal frameworks (e.g. Hindu Marriage Act, Special Marriage Act, Muslim Personal Law, etc., for personal matters) without stopping or pausing.
+14. STRICT NO CLARIFYING QUESTIONS RULE: You are STRICTLY FORBIDDEN from asking clarifying questions, generating a "Clarifying Questions" section, or asking the user for missing details. ALWAYS provide a complete, comprehensive, and exhaustive legal response covering all personal laws and scenarios directly in your answer.
 ================================================================================
+
+--- RECENT CONVERSATION HISTORY ---
+{chat_history}
+-----------------------------------
 
 --- RETRIEVED LEGAL CONTEXT ---
 {context}
@@ -142,13 +196,28 @@ Expected Legal Concepts: {concepts}
 
 Instructions:
 1. ALWAYS start your response with a clear, concise 2 to 3 line direct summary answering the query upfront.
-2. Analyze the question carefully. First, utilize the provided retrieved legal context from official statutes to cite specific sections, chapters, acts, and statutory rules.
-3. If the retrieved context does not contain a specific section for an offense or concept, you MUST draw upon your own comprehensive knowledge of the current Indian Criminal Laws (BNS, BNSS, BSA, and Special Acts) to provide a complete, sound, and accurate answer.
-4. Always cite Act Names and Section Numbers clearly under the new codes (e.g. "Bharatiya Nyaya Sanhita, 2023 (BNS), Section 103").
-5. In the "Statutes to Refer" table, include the **Relevance to the facts** column and fill it appropriately.
-6. Organize your answer with clear markdown headings, bullet points, and a structured layout following the HEADING NAMING PROTOCOL above.
+2. Provide a complete, comprehensive legal breakdown covering all relevant legal frameworks directly. DO NOT ask clarifying questions or output a Clarifying Questions section.
+3. Analyze the question carefully using retrieved context and conversation history. State clearly whether the matter falls under Civil Law, Criminal Law, or both.
+4. Draw upon retrieved context and your authoritative knowledge of Indian Criminal (BNS, BNSS, BSA) and Civil Laws (CPC, ICA, TPA, HMA, SMA, CPA, etc.) to provide a complete, sound, and accurate answer.
+5. Always cite Act Names and Section Numbers clearly (e.g. "Bharatiya Nyaya Sanhita, 2023 (BNS), Section 103" or "Hindu Marriage Act, 1955, Section 13").
+6. In the "Statutes to Refer" table, explicitly label the Domain (Civil vs Criminal) and fill the **Relevance to the facts** column appropriately.
+7. Organize your answer with clear markdown headings, bullet points, and a structured layout following the HEADING NAMING PROTOCOL above.
 
 Detailed Legal Answer:"""
+
+
+def strip_all_clarifying_questions(text: str) -> str:
+    """Strips out any clarifying questions header or section if generated by the LLM."""
+    if not text:
+        return text
+    import re
+    # Remove any block starting with Clarifying or Clarify up to the next major section header or horizontal line
+    pattern = r'###?\s*❓?\s*Clarify[^\n]*\n(?:[^\n]+\n)*?(?=\n\s*(?:#{1,6}\s+|---|___|\*\*\*|##|\Z))'
+    cleaned = re.sub(pattern, '', text, flags=re.IGNORECASE)
+    # Strip residual standalone Clarify lines
+    cleaned = re.sub(r'###?\s*❓?\s*Clarify[^\n]*', '', cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r'\*?Please provide the above details so the [^\n]*\*?', '', cleaned, flags=re.IGNORECASE)
+    return cleaned.strip()
 
 
 def format_voice_response(text: str) -> str:
@@ -298,7 +367,7 @@ class CriminalLawRAG:
         arms, bns, bnss, bsa, dca, domestic_violence, dpa, irwa, ndps, pca, pmla, pocso, sc_st, uapa.
         Defaults to 'bns' for substantive crimes or 'bnss' for procedure.
         """
-        categories = ALL_CRIMINAL_COLLECTIONS
+        categories = ALL_LEGAL_COLLECTIONS
 
         system_prompt = (
             "You are an expert Indian Criminal Law routing assistant.\n"
@@ -372,33 +441,31 @@ class CriminalLawRAG:
         print("[Router] Falling back to default 'bns' collection.")
         return "bns"
 
-    def query_understanding(self, query: str, llm: Optional[Any] = None, api_key: Optional[str] = None) -> Dict[str, Any]:
+    def query_understanding(
+        self,
+        query: str,
+        llm: Optional[Any] = None,
+        api_key: Optional[str] = None,
+        chat_history_str: str = ""
+    ) -> Dict[str, Any]:
         """
         Uses the LLM to analyze the query, select relevant collections,
         extract legal concepts and keywords, and generate an expanded query.
+        Synthesizes conversation history if present.
         """
         system_prompt = (
-            "You are an expert Indian Criminal Law analyzer.\n"
+            "You are an expert Indian Legal System analyzer.\n"
             "CRITICAL MANDATE: The Indian Penal Code (IPC) has been REPEALED and REPLACED by the Bharatiya Nyaya Sanhita, 2023 (BNS). "
             "Substantive crimes belong to 'bns' (never IPC). Criminal procedure belongs to 'bnss' (never CrPC). Evidence belongs to 'bsa'.\n\n"
-            "Analyze the User Query and perform Query Understanding to extract:\n"
-            "1. Relevant collections from this list (you can select one or multiple, e.g. [\"bns\", \"bnss\"]):\n"
-            "   - bns: substantive criminal offences (murder, culpable homicide, theft, snatching, robbery, cheating, fraud, breach of trust, "
-            "assault, hurt, rape, sexual offences, kidnapping, extortion, defamation, conspiracy, mob lynching, hit and run - REPLACING IPC)\n"
-            "   - bnss: criminal procedure, arrests, bail, anticipatory bail, police search, investigation, seizure, remand, custody, trials, High Court powers (REPLACING CrPC)\n"
-            "   - bsa: evidence law, electronic records, admissibility, Section 63 BSA certificate, confessions, witness statements (REPLACING Indian Evidence Act)\n"
-            "   - pocso: sexual offences against children/minors under 18, child sexual abuse, penetrative sexual assault, child pornography\n"
-            "   - ndps: narcotics, drugs, drug trafficking, contraband possession, cannabis, charas, heroin, commercial quantity, Section 37 bail\n"
-            "   - uapa: terrorism, national security threats, unlawful activities, terrorist organizations, sovereignty of India\n"
-            "   - arms: firearms, weapons, ammunition, arms licensing, illegal weapon possession, arms trafficking\n"
-            "   - domestic_violence: domestic abuse, violence against women, protection orders, household cruelty\n"
-            "   - dpa: dowry demands, giving or taking dowry, dowry prohibition\n"
-            "   - pca: corruption, bribery, illegal gratification, public servants accepting bribes, disproportionate assets\n"
-            "   - pmla: money laundering, proceeds of crime, property attachment, Enforcement Directorate (ED)\n"
-            "   - sc_st: atrocities against Scheduled Castes or Scheduled Tribes, caste-based abuse, violence, discrimination\n"
-            "   - dca: spurious drugs, adulterated pharmaceuticals, counterfeit cosmetics, illegal drug manufacture/sale\n"
-            "   - irwa: indecent representation of women in publications, advertisements, media, derogatory portrayals\n\n"
-            "2. Expected legal concepts (e.g. culpable homicide, theft, bail, age of consent, burden of proof).\n"
+            "Analyze the User Query (and recent conversation context if the query relies on prior follow-ups like 'It is a car' or 'We are Hindu') to extract:\n"
+            "1. Relevant collections from all available collections (e.g. [\"bns\", \"bnss\"], [\"hma\", \"hsa\"], [\"tpa\", \"cpc\", \"mva\"]):\n"
+            "   - bns: substantive criminal offences (murder, theft, robbery, cheating, fraud, breach of trust, assault, hurt, rape, sexual offences, kidnapping, extortion, defamation, conspiracy - REPLACING IPC)\n"
+            "   - bnss: criminal procedure, arrests, bail, anticipatory bail, search, investigation, remand, trials (REPLACING CrPC)\n"
+            "   - bsa: evidence law, electronic records, admissibility, witness statements (REPLACING IEA)\n"
+            "   - hma / hsa / hama / sma: Hindu Marriage Act, Hindu Succession Act, Hindu Maintenance, Special Marriage Act (divorce, maintenance, custody, inheritance)\n"
+            "   - tpa / cpc / sra / mva / soga: Transfer of Property Act, Code of Civil Procedure, Specific Relief Act, Motor Vehicles Act, Sale of Goods Act\n"
+            "   - pocso, ndps, uapa, arms, domestic_violence, dpa, pca, pmla, sc_st, dca, irwa\n\n"
+            "2. Expected legal concepts (e.g. culpable homicide, theft, bail, divorce, mutual consent, movable property, inheritance).\n"
             "3. Key retrieval keywords for keyword/full-text search. Generate a specific, dynamic list of keywords matching search intent.\n"
             "4. An expanded search query combining legal terms, offences, parties, procedures, and statutory terminology, optimized for vector search.\n\n"
             "You MUST respond with EXACTLY a JSON object and nothing else. Follow this format:\n"
@@ -413,13 +480,17 @@ class CriminalLawRAG:
         active_llm = llm if llm is not None else (self.llm_pool[0] if self.llm_pool else None)
         active_key = api_key if api_key is not None else (self.api_keys[0] if self.api_keys else None)
 
+        user_input_content = f"User Query: {query}"
+        if chat_history_str and chat_history_str != "No previous conversation history.":
+            user_input_content = f"Recent Conversation Context:\n{chat_history_str}\n\nLatest User Query: {query}"
+
         if active_llm:
             try:
                 from langchain_core.messages import HumanMessage, SystemMessage
                 print(f"[Query Understanding] Analyzing query using LLM...")
                 response = active_llm.invoke([
                     SystemMessage(content=system_prompt),
-                    HumanMessage(content=f"User Query: {query}")
+                    HumanMessage(content=user_input_content)
                 ])
                 content = response.content.strip()
                 
@@ -431,8 +502,8 @@ class CriminalLawRAG:
                         content = "\n".join(lines[1:-1])
                 parsed = json.loads(content)
                 
-                # Validate collections against all 14 legal collections
-                valid_collections = ALL_CRIMINAL_COLLECTIONS
+                # Validate collections against all 37 legal collections (criminal & civil)
+                valid_collections = ALL_LEGAL_COLLECTIONS
                 collections = [c.lower().strip() for c in parsed.get("collections", []) if c.lower().strip() in valid_collections]
                 if not collections:
                     collections = [self.classify_query(query, llm=active_llm, api_key=active_key)]
@@ -752,7 +823,7 @@ class CriminalLawRAG:
 
     def search_all_collections(self, question: str, limit: int = 5, act_id: Optional[str] = None) -> List[Dict[str, Any]]:
         """Search across all collections and merge results by score."""
-        categories = ALL_CRIMINAL_COLLECTIONS
+        categories = ALL_LEGAL_COLLECTIONS
         all_results = []
         for col in categories:
             try:
@@ -764,12 +835,22 @@ class CriminalLawRAG:
         return all_results[:limit]
 
     def format_docs(self, docs: List[Dict[str, Any]]) -> str:
-        """Format retrieved Qdrant records into structured prompt context."""
+        """Format retrieved Qdrant records into structured prompt context with domain labeling."""
         formatted_chunks = []
         for idx, doc in enumerate(docs, start=1):
             is_exp = " [Related Context]" if doc.get("is_expansion") else ""
+            act_id_val = str(doc.get("act_id", "")).lower()
+            chunk_id_val = str(doc.get("chunk_id", "")).lower()
+            
+            # Determine domain (Civil Law vs Criminal Law)
+            if any(col == act_id_val.split("_")[0] for col in ALL_CIVIL_COLLECTIONS) or any(f"{col}_" in chunk_id_val for col in ALL_CIVIL_COLLECTIONS):
+                domain_type = "Civil Law"
+            else:
+                domain_type = "Criminal Law"
+
             chunk_str = (
                 f"[Document {idx}]{is_exp}\n"
+                f"Domain: [{domain_type}]\n"
                 f"Source: {doc.get('source_label', '')}\n"
                 f"Act: {doc.get('act_title', '')} ({doc.get('act_id', '')})\n"
                 f"Chapter: {doc.get('chapter', '')}\n"
@@ -786,6 +867,8 @@ class CriminalLawRAG:
         top_k: int = 5,
         act_id: Optional[str] = None,
         is_voice: bool = False,
+        chat_history: Optional[List[Dict[str, str]]] = None,
+        response_language: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Retrieve relevant legal documents from Qdrant using Hybrid search + Reranking,
@@ -798,6 +881,8 @@ class CriminalLawRAG:
                 top_k=top_k,
                 act_id=act_id,
                 is_voice=is_voice,
+                chat_history=chat_history,
+                response_language=response_language,
             )
         except Exception as e:
             print(f"[API Key Balancer] Critical: All keys failed. Returning graceful fallback. Error: {e}")
@@ -818,7 +903,8 @@ class CriminalLawRAG:
 
             return {
                 "question": question,
-                "answer": sanitize_no_ipc(f"All configured Groq API keys are currently unavailable (rate-limited, invalid, or exhausted).\n\nDetails of failure: {e}"),
+                "answer": "Something went wrong. Please try again.",
+                "is_error": True,
                 "retrieved_docs": retrieved_docs,
                 "formatted_context": formatted_context,
                 "classified_collection": "bns",
@@ -945,15 +1031,38 @@ class CriminalLawRAG:
         api_key: Optional[str] = None,
         chain: Optional[Any] = None,
         is_voice: bool = False,
+        chat_history: Optional[List[Dict[str, str]]] = None,
+        response_language: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Internal implementation of RAG querying utilizing a specific API key instance.
         """
+        # Format recent chat history if provided
+        formatted_chat_history = "No previous conversation history."
+        if chat_history:
+            history_lines = []
+            for msg in chat_history[-6:]:
+                role = "User" if msg.get("role") in ["user", "human"] else "Assistant"
+                content = str(msg.get("content", "")).strip()
+                if content:
+                    if len(content) > 500:
+                        content = content[:500] + "..."
+                    history_lines.append(f"{role}: {content}")
+            if history_lines:
+                formatted_chat_history = "\n".join(history_lines)
+
         # 0. Multilingual Step: Detect language and translate non-English query to English for semantic Qdrant search
         lang_info = self.detect_and_translate_to_english(question, llm=llm, api_key=api_key)
         is_english = lang_info.get("is_english", True)
         target_lang = lang_info.get("original_language", "English")
         search_question = lang_info.get("english_query", question)
+
+        # If user explicitly selected a response language in settings, override target_lang
+        if response_language and isinstance(response_language, str) and response_language.strip():
+            clean_resp_lang = response_language.strip()
+            if clean_resp_lang.lower() not in ["auto", "default"]:
+                target_lang = clean_resp_lang
+                is_english = (clean_resp_lang.lower() in ["english", "en"])
 
         # If voice mode is requested, adjust the question prompt for extreme conciseness
         effective_question = search_question
@@ -964,8 +1073,8 @@ class CriminalLawRAG:
                 "Do NOT produce tables, bullet lists, or multiple section headings. Be direct and brief.]"
             )
 
-        # 1. Query Understanding & Legal Concept Extraction
-        qu_res = self.query_understanding(effective_question, llm=llm, api_key=api_key)
+        # 1. Query Understanding & Legal Concept Extraction (Synthesizing chat history if available)
+        qu_res = self.query_understanding(effective_question, llm=llm, api_key=api_key, chat_history_str=formatted_chat_history)
         collections = qu_res.get("collections", ["bns"])
         concepts = qu_res.get("concepts", [])
         keywords = qu_res.get("keywords", [])
@@ -1044,7 +1153,7 @@ class CriminalLawRAG:
         primary_col = collections[0] if collections else "bns"
         if reranked_results:
             primary_col = reranked_results[0].get("act_id", "").split("_")[0].lower()
-            if primary_col not in ALL_CRIMINAL_COLLECTIONS:
+            if primary_col not in ALL_LEGAL_COLLECTIONS:
                 primary_col = collections[0] if collections else "bns"
 
         for doc in reranked_results[:1]:
@@ -1105,7 +1214,12 @@ class CriminalLawRAG:
             try:
                 from groq import Groq
                 client = Groq(api_key=api_key)
-                prompt_text = RAG_PROMPT_TEMPLATE.format(context=formatted_context, question=effective_question, concepts=concepts_str)
+                prompt_text = RAG_PROMPT_TEMPLATE.format(
+                    context=formatted_context,
+                    question=effective_question,
+                    concepts=concepts_str,
+                    chat_history=formatted_chat_history,
+                )
                 response = client.chat.completions.create(
                     messages=[{"role": "user", "content": prompt_text}],
                     model=self.model_name,
@@ -1115,7 +1229,7 @@ class CriminalLawRAG:
                 answer = response.choices[0].message.content
                 print(f"[Generation] Final answer generated successfully")
             except Exception as e:
-                answer = f"Error generating answer with Groq: {e}\n\nRetrieved Context:\n{formatted_context}"
+                answer = "Something went wrong. Please try again."
                 print(f"[Generation] Failed to generate answer: {e}")
         else:
             try:
@@ -1124,6 +1238,7 @@ class CriminalLawRAG:
                     "context": formatted_context,
                     "question": effective_question,
                     "concepts": concepts_str,
+                    "chat_history": formatted_chat_history,
                 })
                 print(f"[Generation] Final answer generated successfully")
             except Exception as e:
@@ -1131,7 +1246,12 @@ class CriminalLawRAG:
                 try:
                     from groq import Groq
                     client = Groq(api_key=api_key)
-                    prompt_text = RAG_PROMPT_TEMPLATE.format(context=formatted_context, question=effective_question, concepts=concepts_str)
+                    prompt_text = RAG_PROMPT_TEMPLATE.format(
+                        context=formatted_context,
+                        question=effective_question,
+                        concepts=concepts_str,
+                        chat_history=formatted_chat_history,
+                    )
                     response = client.chat.completions.create(
                         messages=[{"role": "user", "content": prompt_text}],
                         model=self.model_name,
@@ -1141,16 +1261,17 @@ class CriminalLawRAG:
                     answer = response.choices[0].message.content
                     print(f"[Generation] Final answer generated successfully")
                 except Exception as inner_e:
-                    answer = f"Error generating answer with Groq LLM: {inner_e}"
+                    answer = "Something went wrong. Please try again."
                     print(f"[Generation] Failed to generate answer: {inner_e}")
 
-        # Post-generation guarantee: Sanitize any remaining IPC/CrPC leakage
+        # Post-generation guarantee: Sanitize any remaining IPC/CrPC leakage and strip any clarifying questions
         answer = sanitize_no_ipc(answer)
+        answer = strip_all_clarifying_questions(answer)
         if is_voice:
             answer = format_voice_response(answer)
 
-        # 8. Multilingual Final Translation: If original user query was non-English, translate output into target_lang
-        if not is_english and target_lang.lower() != "english":
+        # 8. Multilingual Final Translation: Translate output into target_lang if target_lang is non-English
+        if target_lang.lower() not in ["english", "en"]:
             answer = self.translate_response_to_language(answer, target_lang, llm=llm, api_key=api_key)
             if is_voice:
                 answer = format_voice_response(answer)

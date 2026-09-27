@@ -11,9 +11,9 @@ import {
   GitCommit,
   ChevronDown,
   RotateCw,
-  Link as LinkIcon,
   Volume2,
   VolumeX,
+  AlertCircle,
 } from "lucide-react";
 
 interface MessageItemProps {
@@ -95,10 +95,48 @@ export const MessageItem: React.FC<MessageItemProps> = ({
     );
   }
 
+  // Small compact error view if message is an error
+  const isError =
+    message.isError ||
+    message.content.includes("Something went wrong") ||
+    message.content.startsWith("Error generating answer") ||
+    message.content.includes("All configured Groq API keys");
+
+  if (isError) {
+    return (
+      <div className="flex items-start gap-3 group">
+        <div className="hidden sm:flex w-7 h-7 rounded-lg shrink-0 mt-1 border border-red-500/30 bg-red-500/10 backdrop-blur-sm items-center justify-center">
+          <AlertCircle className="w-4 h-4 text-red-400" />
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 text-[var(--text-xs)] text-[var(--color-text-quaternary)] mb-1.5">
+            <span className="font-medium text-red-400">Project Access</span>
+            <span>•</span>
+            <span>{timeStr}</span>
+          </div>
+
+          <div className="inline-flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200 text-sm">
+            <span>Something went wrong. Please try again.</span>
+            {onRegenerate && (
+              <button
+                type="button"
+                onClick={() => onRegenerate(message.id)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-300 hover:text-white font-medium text-xs transition-colors border border-red-500/30 cursor-pointer">
+                <RotateCw className="w-3.5 h-3.5" />
+                <span>Retry</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-start gap-3 group">
       {/* Bot Icon */}
-      <div className="w-7 h-7 rounded-lg shrink-0 mt-1 border border-emerald-500/30 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 backdrop-blur-sm flex items-center justify-center">
+      <div className="hidden sm:flex w-7 h-7 rounded-lg shrink-0 mt-1 border border-emerald-500/30 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 backdrop-blur-sm items-center justify-center">
         <img
           src="/icon.jpeg"
           alt="Project Access"
@@ -181,42 +219,17 @@ export const MessageItem: React.FC<MessageItemProps> = ({
           {isStreaming && <span className="cursor-blink" />}
         </div>
 
-        {/* Source Citations */}
-        {message.sources && message.sources.length > 0 && (
-          <div className="mt-3 pt-2 border-t border-[var(--color-border-primary)]/60">
-            <div className="text-[var(--text-xs)] font-medium text-[var(--color-text-quaternary)] mb-1.5">
-              Sources & Statutory Citations:
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {message.sources.map((src, i) => (
-                <div
-                  key={i}
-                  className="px-2 py-1 rounded border border-emerald-500/30 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 backdrop-blur-sm text-[var(--color-text-tertiary)] text-[var(--text-xs)] flex items-center gap-1.5 hover:from-emerald-500/20 hover:to-teal-500/20 transition-all">
-                  <LinkIcon className="w-2.5 h-2.5 shrink-0 text-emerald-400" />
-                  <span className="font-medium text-emerald-400">
-                    {src.act_title || src.title}
-                  </span>
-                  {src.section_number && (
-                    <span className="text-[var(--color-text-quaternary)]">
-                      ({src.section_number})
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+
 
         {/* Minimal Action Toolbar */}
         <div className="flex items-center gap-1 mt-2 text-[var(--color-text-quaternary)]">
           <button
             title={isSpeaking ? "Stop reading aloud" : "Read aloud (Voice)"}
             onClick={toggleSpeech}
-            className={`p-1 rounded text-xs transition-colors flex items-center gap-1 ${
-              isSpeaking
+            className={`p-1 rounded text-xs transition-colors flex items-center gap-1 ${isSpeaking
                 ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
                 : "hover:bg-[var(--color-surface-hover)] hover:text-emerald-400"
-            }`}>
+              }`}>
             {isSpeaking ? (
               <>
                 <VolumeX className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
