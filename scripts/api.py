@@ -17,7 +17,7 @@ app = FastAPI(title="Project Access")
 # Enable CORS for the Next.js development server
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For local testing; restrict in production
+    allow_origins=["project-access-three.vercel.app"],  # For local testing; restrict in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
