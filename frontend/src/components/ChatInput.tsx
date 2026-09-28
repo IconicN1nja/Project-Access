@@ -130,7 +130,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const hasText = Boolean(input.trim());
 
   return (
-    <div className="p-3 sm:p-4 pb-5 bg-transparent relative z-10">
+    <div className="p-3 sm:p-4 bg-transparent relative z-10">
       <div className="max-w-3xl mx-auto">
         {/* Listening Banner */}
         {isListening && (
