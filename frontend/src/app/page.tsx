@@ -239,8 +239,8 @@ export default function Home() {
     try {
       const res = persistedChatIdsRef.current.has(id)
         ? await fetch(`/api/chats/${id}`, {
-          method: "DELETE",
-        })
+            method: "DELETE",
+          })
         : { ok: true };
       if (res.ok) {
         const updated = chats.filter((c) => c.id !== id);
@@ -485,12 +485,12 @@ export default function Home() {
         const finalMessages = workingMessages.map((m) =>
           m.id === botMessage.id
             ? {
-              ...m,
-              content: botMessage.content,
-              thinking: botMessage.thinking,
-              sources: botMessage.sources,
-              isError: botMessage.isError,
-            }
+                ...m,
+                content: botMessage.content,
+                thinking: botMessage.thinking,
+                sources: botMessage.sources,
+                isError: botMessage.isError,
+              }
             : m,
         );
 
@@ -561,12 +561,12 @@ export default function Home() {
         const finalMessages = workingMessages.map((m) =>
           m.id === botMessage.id
             ? {
-              ...m,
-              content: "Something went wrong. Please try again.",
-              isError: true,
-              thinking: "",
-              sources: [],
-            }
+                ...m,
+                content: "Something went wrong. Please try again.",
+                isError: true,
+                thinking: "",
+                sources: [],
+              }
             : m,
         );
         setChats((prev) =>
@@ -735,7 +735,7 @@ export default function Home() {
             {/* Messages Scroll Area */}
             <div
               ref={scrollRef}
-              className="flex-1 overflow-y-auto p-4 sm:p-6 pt-16 sm:pt-20 select-text relative z-10">
+              className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 pt-16 sm:pt-20 pb-24 select-text relative z-10">
               <div className="max-w-3xl mx-auto space-y-6 pb-4">
                 {activeChat.messages.map((msg, index) => (
                   <MessageItem
@@ -752,18 +752,20 @@ export default function Home() {
             </div>
 
             {/* Input Bar for Active Chat with Glassmorphic Floating Button System */}
-            <ChatInput
-              input={input}
-              setInput={setInput}
-              onSend={(text, isVoice) => handleSendMessage(text, isVoice)}
-              isGenerating={isGenerating}
-              onStop={handleStopGeneration}
-              showSaveBanner={Boolean(
-                savePromptChatId && activeChatId === savePromptChatId,
-              )}
-              onSaveChat={handleSaveChat}
-              onDismissSave={handleDeclineSave}
-            />
+            <div className="pb-16 sm:pb-0">
+              <ChatInput
+                input={input}
+                setInput={setInput}
+                onSend={(text, isVoice) => handleSendMessage(text, isVoice)}
+                isGenerating={isGenerating}
+                onStop={handleStopGeneration}
+                showSaveBanner={Boolean(
+                  savePromptChatId && activeChatId === savePromptChatId,
+                )}
+                onSaveChat={handleSaveChat}
+                onDismissSave={handleDeclineSave}
+              />
+            </div>
           </>
         )}
       </main>
