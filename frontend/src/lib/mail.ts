@@ -4,8 +4,17 @@ const SMTP_HOST = process.env.SMTP_HOST;
 const SMTP_PORT = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 587;
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASSWORD = process.env.SMTP_PASSWORD;
-const SMTP_FROM =
-  process.env.SMTP_FROM || '"Project Access" <no-reply@projectaccess.com>';
+const getFormattedFrom = () => {
+  if (process.env.SMTP_FROM) {
+    // Remove surrounding quotes if present in .env
+    const cleaned = process.env.SMTP_FROM.replace(/^["']|["']$/g, "").trim();
+    if (cleaned) return cleaned;
+  }
+  if (SMTP_USER) {
+    return `"Project Access" <${SMTP_USER}>`;
+  }
+  return '"Project Access" <no-reply@projectaccess.com>';
+};
 
 export async function sendOtpEmail(email: string, otp: string) {
   console.log("=====================================================");
@@ -32,31 +41,70 @@ export async function sendOtpEmail(email: string, otp: string) {
       },
     });
 
+    const fromAddress = getFormattedFrom();
+
     const mailOptions = {
-      from: SMTP_FROM,
+      from: fromAddress,
       to: email,
-      subject: "Verify your Project Access Account — Verification Code",
-      text: `Welcome to Project Access. Your verification code is: ${otp}. This code is valid for 10 minutes.`,
+      replyTo: SMTP_USER || fromAddress,
+      subject: `${otp} is your Project Access security code`,
+      text: `Your Project Access security code is: ${otp}\n\nPlease enter this 6-digit code to verify your login or account registration.\nThis code will expire in 10 minutes.\n\nThank you,\nProject Access Team`,
       html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e4e4e7; border-radius: 8px;">
-          <h2 style="color: #09090b; margin-bottom: 16px;">Welcome to Project Access</h2>
-          <p style="color: #3f3f46; font-size: 14px; line-height: 20px;">
-            Thank you for registering. Please enter the following 6-digit verification code on the website to activate your account.
-          </p>
-          <div style="margin: 24px 0; text-align: center;">
-            <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; padding: 12px 24px; border: 1px dashed #d4d4d8; border-radius: 8px; background-color: #fafafa; display: inline-block; color: #09090b; font-family: monospace;">
-              ${otp}
-            </span>
-          </div>
-          <p style="color: #71717a; font-size: 12px; margin-top: 24px;">
-            This verification code will expire in 10 minutes. If you did not request this code, you can safely ignore this email.
-          </p>
-          <hr style="border: 0; border-top: 1px solid #e4e4e7; margin: 24px 0;" />
-          <p style="color: #a1a1aa; font-size: 11px; text-align: center;">
-            Project Access Legal Intelligence AI. All rights reserved.
-          </p>
-        </div>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Security Code</title>
+        </head>
+        <body style="margin: 0; padding: 0; background-color: #f4f4f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f4f4f5; padding: 40px 10px;">
+            <tr>
+              <td align="center">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 520px; background-color: #ffffff; border-radius: 12px; border: 1px solid #e4e4e7; box-shadow: 0 4px 12px rgba(0,0,0,0.03); overflow: hidden;">
+                  <tr>
+                    <td style="padding: 28px 32px; background-color: #0f172a; text-align: left;">
+                      <h1 style="margin: 0; color: #ffffff; font-size: 20px; font-weight: 600; letter-spacing: -0.5px;">Project Access</h1>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 32px; text-align: left;">
+                      <h2 style="margin: 0 0 12px 0; color: #0f172a; font-size: 18px; font-weight: 600;">Your Security Code</h2>
+                      <p style="margin: 0 0 24px 0; color: #475569; font-size: 14px; line-height: 1.6;">
+                        Please enter the 6-digit verification code below to complete your login or registration.
+                      </p>
+                      <div style="margin: 28px 0; text-align: center;">
+                        <div style="display: inline-block; background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px 28px;">
+                          <span style="font-family: 'Courier New', Courier, monospace; font-size: 32px; font-weight: 700; letter-spacing: 8px; color: #0f172a; display: block;">
+                            ${otp}
+                          </span>
+                        </div>
+                      </div>
+                      <p style="margin: 24px 0 0 0; color: #64748b; font-size: 13px; line-height: 1.5;">
+                        This code expires in 10 minutes. If you did not request this, please secure your account.
+                      </p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 20px 32px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center;">
+                      <p style="margin: 0; color: #94a3b8; font-size: 12px;">
+                        © Project Access. Automated authentication service.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
       `,
+      headers: {
+        "X-Priority": "3",
+        "X-MSMail-Priority": "Normal",
+        "Importance": "Normal",
+        "X-Auto-Response-Suppress": "OOF, AutoReply",
+      },
     };
 
     const info = await transporter.sendMail(mailOptions);
